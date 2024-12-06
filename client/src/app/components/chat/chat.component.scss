@@ -1,0 +1,74 @@
+:root {
+  --bg-color-dark: #2d2d2d;
+  --bg-color-gray: #3b3b3b;
+  --bg-color-blue: #1e3a8a;
+  --text-color-light: #e0e0e0;
+  --text-color-white: #ffffff;
+  --bg-color-hover: #374151;
+}
+
+::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+}
+.scrollbar-hidden {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.message-bubble {
+  border-radius: 12px;
+  padding: 12px 16px;
+  max-width: 70%;
+  margin-bottom: 8px;
+}
+.user-message {
+  background-color: var(--bg-color-blue);
+  color: var(--text-color-white);
+  align-self: flex-start;
+  border-top-left-radius: 0;
+  border-bottom-left-radius: 0;
+}
+.other-message {
+  background-color: var(--bg-color-gray);
+  color: var(--text-color-light);
+  align-self: flex-end;
+  border-top-right-radius: 0;
+  border-bottom-right-radius: 0;
+}
+.avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+.dark-theme {
+  background-color: var(--bg-color-dark);
+  color: var(--text-color-light);
+}
+.dark-theme input {
+  background-color: var(--bg-color-gray);
+  color: var(--text-color-light);
+}
+.dark-theme button {
+  background-color: var(--bg-color-blue);
+  color: var(--text-color-white);
+}
+.dark-theme .message-bubble {
+  background-color: var(--bg-color-gray);
+}
+.add-chat-btn {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background-color: var(--bg-color-blue);
+  color: var(--text-color-white);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 20px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+.add-chat-btn:hover {
+  background-color: var(--bg-color-hover);
+}

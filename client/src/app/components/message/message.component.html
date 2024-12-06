@@ -1,0 +1,21 @@
+<div
+  class="relative message-container"
+  (contextmenu)="onRightClick($event)" (click)="onClickOutside()">
+  @if (message.from !== user) {
+    <div class="message flex items-start">
+      <div class="max-w-xs bg-indigo-500 text-white p-4 rounded-lg shadow">
+        {{ message.text }}
+      </div>
+      <span class="text-xs text-gray-400 ml-2">{{ message.date }}</span>
+    </div>
+  } @else {
+    <div class="message flex items-end justify-end">
+      <span class="text-xs text-gray-400 mr-2">{{ message.date }}</span>
+      <div class="max-w-xs bg-gray-700 text-white p-4 rounded-lg shadow">
+        {{ message.text }}
+      </div>
+    </div>
+    <div #menuContainer></div>
+  }
+</div>
+

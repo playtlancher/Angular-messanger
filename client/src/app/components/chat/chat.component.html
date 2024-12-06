@@ -1,0 +1,11 @@
+@if (chat) {
+  <a routerLink="/chat/{{chat.id}}">
+    <div class="flex items-center p-4 rounded-lg bg-gray-700 hover:bg-gray-600 transition mt-3">
+      <div class="w-12 h-12 bg-blue-500 rounded-full flex-shrink-0"></div>
+      <div class="ml-3">
+        <p class="font-medium text-lg">{{ chat.name }}</p>
+        <span class="text-sm text-gray-400">12:45</span>
+      </div>
+    </div>
+  </a>
+}
