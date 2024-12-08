@@ -12,4 +12,5 @@ router.get("/chats", CheckToken, chatController.getUserChats);
 router.get("/chat/:chat_id", CheckToken, chatController.getChatMessages);
 router.post("/chat/:chat_id", CheckToken, chatController.postMessage);
 router.post("/refresh-token", userController.refreshAccessToken);
+router.get("/file/:file_id", chatController.getFile);
 export default router;

@@ -16,9 +16,9 @@ export default class Chat extends Model {
   @PrimaryKey
   @AutoIncrement
   @Column(DataType.INTEGER)
-  public id!: number;
+  declare id: number;
 
   @AllowNull(false)
   @Column(DataType.TEXT)
-  public name!: string;
+  declare name: string;
 }

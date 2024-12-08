@@ -5,7 +5,8 @@ ul {
   position: absolute;
   right: 0;
   z-index: 1;
-  animation: fadeInScale 0.2s ease-out;
+  animation: fadeInScale;
+  transition: color 0.3s ease-in-out;
   transform-origin: top left;
 }
 @keyframes fadeInScale {
@@ -19,5 +20,17 @@ ul {
   }
 }
 li{
-  transition: ease-in-out 0.5s;
+  transition: ease-in-out 0.3s;
+}
+#delete{
+  color: #f45a5a;
+}
+#delete:hover{
+  color: #f61515;
+}
+#edit{
+  color: #346eba;
+}
+#edit:hover{
+  color: #0074fd;
 }

@@ -21,23 +21,23 @@ export default class Message extends Model {
   @PrimaryKey
   @AutoIncrement
   @Column(DataType.INTEGER)
-  public id!: number;
+  declare id: number;
 
   @ForeignKey(() => User)
   @AllowNull(false)
   @Column(DataType.INTEGER)
-  public from!: number;
+  declare from: number;
 
   @ForeignKey(() => Chat)
   @AllowNull(false)
   @Column(DataType.INTEGER)
-  public chat!: number;
+  declare chat: number;
 
   @AllowNull(false)
   @Column(DataType.TEXT)
-  public text!: string;
+  declare text: string;
 
   @Default(DataType.NOW)
   @Column(DataType.DATE)
-  public date!: Date;
+  declare date: Date;
 }

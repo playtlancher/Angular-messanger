@@ -17,13 +17,13 @@ export default class User extends Model {
   @AutoIncrement
   @AllowNull(false)
   @Column(DataType.INTEGER)
-  public id!: number;
+  declare id: number;
 
   @AllowNull(false)
   @Column(DataType.STRING)
-  public username!: string;
+  declare username: string;
 
   @AllowNull(false)
   @Column(DataType.STRING)
-  public password!: string;
+  declare password: string;
 }

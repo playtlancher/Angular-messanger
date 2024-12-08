@@ -1,5 +1,5 @@
 import * as UserRepository from "../repositories/UserRepository";
-import jwt, {JwtPayload} from "jsonwebtoken";
+import jwt, { JwtPayload } from "jsonwebtoken";
 import { Response, Request, NextFunction } from "express";
 import bcrypt from "bcrypt";
 import dotenv from "dotenv";
@@ -101,7 +101,7 @@ async function login(req: Request, res: Response, next: NextFunction) {
   }
 }
 
-function refreshAccessToken(req: Request, res: Response){
+function refreshAccessToken(req: Request, res: Response) {
   const refreshToken = req.cookies.refreshToken;
   if (!refreshToken) {
     res.status(401).send("Refresh token is not provided");
@@ -111,7 +111,7 @@ function refreshAccessToken(req: Request, res: Response){
   const refreshSecret = process.env.REFRESH_TOKEN_SECRET as string;
   const decoded = jwt.verify(refreshToken, refreshSecret) as JwtPayload;
   if (decoded) {
-    const user = decoded.user;
+    const user = {id:decoded.id, username: decoded.username};
     const accessToken = jwt.sign(user, secret, { expiresIn: "1h" });
     const refreshToken = jwt.sign(user, refreshSecret, { expiresIn: "7d" });
     res.cookie("accessToken", accessToken, {

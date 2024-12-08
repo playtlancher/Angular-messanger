@@ -10,7 +10,9 @@ export function CheckToken(req: Request, res: Response, next: NextFunction) {
 
   const secret = process.env.ACCESS_TOKEN_SECRET;
   if (!secret) {
-    console.error("ACCESS_TOKEN_SECRET is not defined in the environment variables.");
+    console.error(
+      "ACCESS_TOKEN_SECRET is not defined in the environment variables.",
+    );
     res.status(500).send("Internal server error.");
   }
 
@@ -20,6 +22,5 @@ export function CheckToken(req: Request, res: Response, next: NextFunction) {
   } catch (err) {
     console.error("Invalid token:", err);
     res.status(401).send("Unauthorized");
-
   }
 }

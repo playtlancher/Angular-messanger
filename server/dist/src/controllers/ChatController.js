@@ -13,23 +13,16 @@ import * as ChatRepository from "../repositories/ChatRepository";
 import * as MessageRepository from "../repositories/MessageRepository";
 function getUserChats(req, res, next) {
     return __awaiter(this, void 0, void 0, function* () {
-        const token = checkToken(req);
+        const token = verifyToken(req, res);
         if (!token)
-            res.status(403).send("Unauthorized");
+            return;
         try {
             const chatIDs = yield ChatUserRepository.findAllBy({
-                user_id: token === null || token === void 0 ? void 0 : token.user.id,
+                user_id: token.id,
             });
-            if (!chatIDs || chatIDs.length === 0) {
+            if (!chatIDs || chatIDs.length === 0)
                 res.status(404).send("No chats found for this user.");
-            }
-            const chats = yield Promise.all(chatIDs.map((chat) => __awaiter(this, void 0, void 0, function* () {
-                const result = yield ChatRepository.findOneBy({ id: chat.chat_id });
-                if (!result) {
-                    throw new Error(`Chat ID ${chat.chat_id} not found`);
-                }
-                return result;
-            })));
+            const chats = yield Promise.all(chatIDs.map(fetchChat));
             res.status(200).json(chats);
         }
         catch (error) {
@@ -43,24 +36,20 @@ function getUserChats(req, res, next) {
 function getChatMessages(req, res) {
     return __awaiter(this, void 0, void 0, function* () {
         const chatId = Number(req.params.chat_id);
-        const token = checkToken(req);
+        const token = verifyToken(req, res);
         if (!token)
-            res.status(403).send("Unauthorized");
+            return;
         try {
-            const isUserInChat = token && (yield checkUserAccess(token.user.id, chatId));
-            if (!isUserInChat) {
+            if (!(yield checkUserAccess(token.id, chatId))) {
                 res.status(403).send("User has no access to this chat.");
             }
-            const messages = yield MessageRepository.findAllBy({ chat: chatId });
-            if (!messages || messages.length === 0) {
-                res.status(404).send("No messages found for this chat.");
-            }
-            messages.sort((a, b) => a.date.getTime() - b.date.getTime());
+            const messages = yield fetchMessages(chatId);
             res.status(200).json(messages);
         }
-        catch (err) {
-            console.error(err);
-            res.status(500).send("Internal server error. Please try again later.");
+        catch (error) {
+            res
+                .status(500)
+                .json({ message: "Internal server error. Please try again later." });
         }
     });
 }
@@ -68,49 +57,37 @@ function postMessage(req, res) {
     return __awaiter(this, void 0, void 0, function* () {
         const chatId = Number(req.params.chat_id);
         const { message } = req.body;
-        if (!message || !message.text) {
-            return res.status(400).send("Invalid message format.");
-        }
-        const { text } = message;
-        const token = checkToken(req);
+        if (!(message === null || message === void 0 ? void 0 : message.text))
+            res.status(400).send("Invalid message format.");
+        const token = verifyToken(req, res);
         if (!token)
-            return res.status(403).send("Unauthorized");
+            return;
+        console.log(token);
         try {
-            const isUserInChat = token && (yield checkUserAccess(token.user.id, chatId));
-            if (!isUserInChat) {
-                return res.status(403).send("User has no access to this chat.");
+            if (!(yield checkUserAccess(token.id, chatId))) {
+                res.status(403).send("User has no access to this chat.");
             }
-            const createdMessage = yield MessageRepository.createMessage(text, chatId, token.user.id);
-            if (!createdMessage) {
-                return res.status(500).send("Failed to create message.");
-            }
-            return res.status(201).json(createdMessage);
+            const createdMessage = yield MessageRepository.createMessage(message.text, chatId, token.id);
+            if (!createdMessage)
+                res.status(500).send("Failed to create message.");
+            res.status(201).json(createdMessage);
         }
-        catch (err) {
-            console.error(err);
-            return res
+        catch (error) {
+            res
                 .status(500)
-                .send("Internal server error. Please try again later.");
+                .json({ message: "Internal server error. Please try again later." });
         }
     });
 }
-function checkToken(req) {
-    const token = req.cookies.accessToken;
-    if (!token) {
-        console.warn("Access token is missing.");
-        return;
-    }
+function verifyToken(req, res) {
     try {
+        const token = req.cookies.accessToken;
         const secret = process.env.ACCESS_TOKEN_SECRET;
-        if (!secret) {
-            console.error("ACCESS_TOKEN_SECRET is not defined.");
-            return;
-        }
         return jwt.verify(token, secret);
     }
-    catch (err) {
-        console.error("Invalid token:", err);
-        return;
+    catch (_a) {
+        res.status(403).send("Unauthorized");
+        return null;
     }
 }
 function checkUserAccess(userId, chatId) {
@@ -119,7 +96,23 @@ function checkUserAccess(userId, chatId) {
             user_id: userId,
             chat_id: chatId,
         });
-        return result && result.length > 0;
+        return result.length > 0;
+    });
+}
+function fetchChat(chat) {
+    return __awaiter(this, void 0, void 0, function* () {
+        const result = yield ChatRepository.findOneBy({ id: chat.chat_id });
+        if (!result)
+            throw new Error(`Chat ID ${chat.chat_id} not found`);
+        return result;
+    });
+}
+function fetchMessages(chatId) {
+    return __awaiter(this, void 0, void 0, function* () {
+        const messages = yield MessageRepository.findAllBy({ chat: chatId });
+        if (!messages || messages.length === 0)
+            throw new Error("No messages found for this chat.");
+        return messages.sort((a, b) => a.date.getTime() - b.date.getTime());
     });
 }
 export { getUserChats, getChatMessages, postMessage };

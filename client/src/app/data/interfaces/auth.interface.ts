@@ -3,7 +3,7 @@ export interface TokenResponse {
   refresh_token: string;
 }
 export interface DecodedToken {
-    id: number;
-    username: string;
+  id: number;
+  username: string;
   exp: number;
 }

@@ -64,14 +64,15 @@ function login(req, res, next) {
                 return res.status(401).json({ message: "Incorrect password." });
             }
             const secret = process.env.ACCESS_TOKEN_SECRET;
+            const refreshSecret = process.env.REFRESH_TOKEN_SECRET;
             if (!secret) {
                 return res
                     .status(500)
                     .json({ message: "JWT secret key not configured." });
             }
-            const payload = { user: { id: user.id, username: user.username } };
+            const payload = { id: user.id, username: user.username };
             const accessToken = jwt.sign(payload, secret, { expiresIn: "1h" });
-            const refreshToken = jwt.sign(payload, secret, { expiresIn: "7d" });
+            const refreshToken = jwt.sign(payload, refreshSecret, { expiresIn: "7d" });
             res.cookie("accessToken", accessToken, {
                 httpOnly: true,
                 secure: process.env.NODE_ENV === "production",
@@ -82,9 +83,7 @@ function login(req, res, next) {
                 secure: process.env.NODE_ENV === "production",
                 maxAge: 3600000,
             });
-            res
-                .status(200)
-                .json({
+            res.status(200).json({
                 message: "User successfully logged in.",
                 access_token: accessToken,
                 refresh_token: refreshToken,
@@ -98,4 +97,34 @@ function login(req, res, next) {
         }
     });
 }
-export { register, login };
+function refreshAccessToken(req, res) {
+    const refreshToken = req.cookies.refreshToken;
+    if (!refreshToken) {
+        res.status(401).send("Refresh token is not provided");
+        return;
+    }
+    const secret = process.env.ACCESS_TOKEN_SECRET;
+    const refreshSecret = process.env.REFRESH_TOKEN_SECRET;
+    const decoded = jwt.verify(refreshToken, refreshSecret);
+    if (decoded) {
+        const user = decoded.user;
+        const accessToken = jwt.sign(user, secret, { expiresIn: "1h" });
+        const refreshToken = jwt.sign(user, refreshSecret, { expiresIn: "7d" });
+        res.cookie("accessToken", accessToken, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === "production",
+            maxAge: 3600000,
+        });
+        res.cookie("refreshToken", refreshToken, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === "production",
+            maxAge: 3600000,
+        });
+        res.status(200).json({
+            message: "Token refreshed successfully.",
+            access_token: accessToken,
+            refresh_token: refreshToken,
+        });
+    }
+}
+export { register, login, refreshAccessToken };

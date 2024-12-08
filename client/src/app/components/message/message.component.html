@@ -1,21 +1,45 @@
-<div
-  class="relative message-container"
-  (contextmenu)="onRightClick($event)" (click)="onClickOutside()">
+<div class="relative" (contextmenu)="onRightClick($event)" (click)="onClickOutside()">
   @if (message.from !== user) {
     <div class="message flex items-start">
       <div class="max-w-xs bg-indigo-500 text-white p-4 rounded-lg shadow">
-        {{ message.text }}
+        <span>{{ message.text }}</span>
       </div>
       <span class="text-xs text-gray-400 ml-2">{{ message.date }}</span>
     </div>
   } @else {
     <div class="message flex items-end justify-end">
+      @if (message.files && message.files.length > 0) {
+        <div class="file-container mb-2 flex gap-2">
+          @for (file of message.files; track file.id) {
+            <button (click)="downloadFile(file)" class="bg-blue-500 text-white p-2 rounded-lg">
+              <div class="file-item bg-gray-600 text-white p-2 rounded-lg shadow flex items-center">
+                <span>{{ file.name }}</span>
+              </div>
+            </button>
+          }
+        </div>
+      }
       <span class="text-xs text-gray-400 mr-2">{{ message.date }}</span>
-      <div class="max-w-xs bg-gray-700 text-white p-4 rounded-lg shadow">
-        {{ message.text }}
+      <div style="flex-direction: column" class="flex">
+        <div class="max-w-xs bg-gray-700 text-white p-4 rounded-lg shadow">
+          @if (!isEditing) {
+            <span>{{ message.text }}</span>
+          } @else {
+            <textarea style="color:black" [(ngModel)]="updatedText"
+                      class="w-full p-2 rounded-lg"></textarea>
+          }
+        </div>
+        @if (isEditing) {
+
+          <button (click)="cancelUpdateMessage()" class="bg-blue-500 text-white p-2 rounded-lg mt-2">
+            Cancel
+          </button>
+          <button (click)="saveUpdatedMessage()" class="bg-blue-500 text-white p-2 rounded-lg mt-2">
+            Save
+          </button>
+        }
+        <div #menuContainer></div>
       </div>
     </div>
-    <div #menuContainer></div>
   }
 </div>
-

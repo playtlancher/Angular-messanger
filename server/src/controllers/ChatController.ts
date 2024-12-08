@@ -3,6 +3,8 @@ import { Request, Response } from "express";
 import * as ChatUserRepository from "../repositories/ChatUserRepository";
 import * as ChatRepository from "../repositories/ChatRepository";
 import * as MessageRepository from "../repositories/MessageRepository";
+import FileRepository from "../repositories/FileRepository";
+import FileService from "../services/FileService";
 
 interface DecodedToken {
   id: number;
@@ -10,6 +12,9 @@ interface DecodedToken {
   iat: number;
   exp: number;
 }
+
+const fileService = new FileService()
+
 
 async function getUserChats(
   req: Request,
@@ -116,5 +121,8 @@ async function fetchMessages(chatId: number) {
     throw new Error("No messages found for this chat.");
   return messages.sort((a, b) => a.date.getTime() - b.date.getTime());
 }
+async function getFile(req: Request, res: Response) {
+  fileService.getFile(req, res);
+}
 
-export { getUserChats, getChatMessages, postMessage };
+export { getUserChats, getChatMessages, postMessage,getFile };

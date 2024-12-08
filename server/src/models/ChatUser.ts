@@ -20,13 +20,13 @@ export default class ChatUser extends Model {
   @AutoIncrement
   @AllowNull(false)
   @Column(DataType.INTEGER)
-  public id!: number;
+  declare id: number;
 
   @ForeignKey(() => User)
   @Column(DataType.INTEGER)
-  public user_id!: number;
+  declare user_id: number;
 
   @ForeignKey(() => Chat)
   @Column(DataType.INTEGER)
-  public chat_id!: number;
+  declare chat_id: number;
 }

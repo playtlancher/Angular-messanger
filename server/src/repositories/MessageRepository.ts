@@ -9,9 +9,9 @@ async function createMessage(
 ): Promise<Message | null> {
   try {
     const message = await Message.create({
+      text: text,
       chat: chatId,
       from: senderId,
-      text: text,
     });
     return message.toJSON();
   } catch (error: any) {
@@ -48,4 +48,21 @@ async function findOneBy(params: WhereOptions): Promise<Message | void> {
   if (message) return message.toJSON();
 }
 
-export { createMessage, findAllBy, findOneBy };
+async function deleteMessage(messageId: number): Promise<void> {
+  await Message.destroy({
+    where: {
+      id: messageId,
+    },
+  });
+}
+async function updateMessage(
+  messageId: number,
+  text: string,
+): Promise<Message | null> {
+  const message = await Message.findOne({ where: { id: messageId } });
+  if (!message) return null;
+  await message.update({ text: text });
+  return message;
+}
+
+export { createMessage, findAllBy, findOneBy, deleteMessage, updateMessage };

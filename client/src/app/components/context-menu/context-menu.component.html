@@ -1,14 +1,14 @@
 <ul class="bg-white shadow-lg rounded-md border border-gray-200 z-1 py-2 w-48">
   <li
+    id="edit"
     class="px-4 py-2 hover:bg-gray-100 rounded-md cursor-pointer"
-    (click)="selectAction('Edit')"
-  >
+    (click)="selectAction('Update')">
     Edit
   </li>
   <li
-    class="color px-4 py-2 hover:bg-gray-100 rounded-md cursor-pointer"
-    (click)="selectAction('Delete')"
-  >
+    id="delete"
+    class="px-4 py-2 hover:bg-gray-100 rounded-md cursor-pointer"
+    (click)="selectAction('Delete')">
     Delete
   </li>
 </ul>

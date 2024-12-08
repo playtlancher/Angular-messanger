@@ -3,7 +3,6 @@ import { HttpClient } from '@angular/common/http';
 import { catchError, tap, throwError } from 'rxjs';
 import { TokenResponse, DecodedToken } from '../interfaces/auth.interface';
 
-
 @Injectable({
   providedIn: 'root',
 })
@@ -49,14 +48,20 @@ export class AuthService {
   }
 
   refreshAccessToken() {
+    localStorage.removeItem('token');
+    localStorage.removeItem('refreshToken');
     if (!this.refreshToken) {
       return throwError(() => new Error('No refresh token available'));
     }
 
     return this.http
-      .post<TokenResponse>(`${this.apiUrl}/refresh-token`,{}, {
-        withCredentials: true,
-      })
+      .post<TokenResponse>(
+        `${this.apiUrl}/refresh-token`,
+        {},
+        {
+          withCredentials: true,
+        },
+      )
       .pipe(
         tap((res) => {
           this.storeTokens(res.access_token, res.refresh_token);

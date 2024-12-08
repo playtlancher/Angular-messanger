@@ -21,7 +21,6 @@ function postLogin(req, res, next) {
 function postRegistration(req, res) {
     return __awaiter(this, void 0, void 0, function* () {
         const { username, password, confirmPassword } = req.body;
-        console.log(password, confirmPassword);
         try {
             yield userService.register(username, password, confirmPassword, res);
         }
@@ -30,6 +29,9 @@ function postRegistration(req, res) {
         }
     });
 }
+function refreshAccessToken(req, res) {
+    userService.refreshAccessToken(req, res);
+}
 function logout(req, res) {
     res.clearCookie("accessToken", {
         httpOnly: true,
@@ -37,4 +39,4 @@ function logout(req, res) {
     });
     res.status(200).send("User logged out successfully");
 }
-export { postLogin, logout, postRegistration };
+export { postLogin, logout, postRegistration, refreshAccessToken };

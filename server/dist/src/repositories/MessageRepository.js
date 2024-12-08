@@ -9,18 +9,18 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 import Message from "../models/Message";
 import User from "../models/User";
-function createMessage(text, chatId, senderId) {
+function createMessage(text, senderId, chatId) {
     return __awaiter(this, void 0, void 0, function* () {
         try {
             const message = yield Message.create({
+                text: text,
                 chat: chatId,
                 from: senderId,
-                text: text,
             });
             return message.toJSON();
         }
         catch (error) {
-            console.error("Error creating message:", error.errors.map((err) => err.message));
+            console.error(`Error creating message:${error.message}`);
             return null;
         }
     });
@@ -56,4 +56,22 @@ function findOneBy(params) {
             return message.toJSON();
     });
 }
-export { createMessage, findAllBy, findOneBy };
+function deleteMessage(messageId) {
+    return __awaiter(this, void 0, void 0, function* () {
+        yield Message.destroy({
+            where: {
+                id: messageId,
+            },
+        });
+    });
+}
+function updateMessage(messageId, text) {
+    return __awaiter(this, void 0, void 0, function* () {
+        const message = yield Message.findOne({ where: { id: messageId } });
+        if (!message)
+            return null;
+        yield message.update({ text: text });
+        return message;
+    });
+}
+export { createMessage, findAllBy, findOneBy, deleteMessage, updateMessage };
