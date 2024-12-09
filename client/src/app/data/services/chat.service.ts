@@ -1,28 +1,54 @@
-import { inject, Injectable } from '@angular/core';
+import {inject, Injectable} from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Chat } from '../interfaces/chat.interface';
-import { Observable } from 'rxjs';
+import { environment } from '../../../environments/environment';
+import {catchError, Observable, tap} from 'rxjs';
 
 @Injectable({
   providedIn: 'root',
 })
 export class ChatService {
   http = inject(HttpClient);
-  constructor() {}
-  baseApiUrl = 'http://localhost:8000/';
+  base_url = environment['BASE_URL'];
+  chats: Chat[] = [];
+
+  constructor() {
+    this.getChats();
+  }
+
   getChats(): Observable<Chat[]> {
-    return this.http.get<Chat[]>(`${this.baseApiUrl}chats`, {
-      withCredentials: true,
-    });
+    return this.http.get<Chat[]>(`${this.base_url}/chats`, { withCredentials: true }).pipe(
+      tap((chats) => {
+        this.chats = chats;
+      }),
+      catchError((error) => {
+        console.error('Error fetching chats:', error);
+        return [];
+      }),
+    );
   }
 
-  getMessages(chatId: number) {
-    return this.http.get(`${this.baseApiUrl}/chats/${chatId}/messages`);
+  getChatById(chatId: number): Chat {
+    return <Chat>this.chats.find((chat) => chat.id === chatId);
   }
 
-  sendMessage(chatId: number, text: string) {
-    return this.http.post(`${this.baseApiUrl}/chats/${chatId}/messages`, {
-      text,
-    });
+  addChat(chatName: string, username: string) {
+    this.http
+      .post<{
+        username: string;
+        id: number;
+      }>(
+        `${this.base_url}/chats`,
+        { username, name: chatName },
+        { withCredentials: true },
+      )
+      .subscribe({
+        next: (response) => {
+          console.log('Chat added successfully:', response);
+        },
+        error: (err) => {
+          console.error('Error adding chat:', err);
+        },
+      });
   }
 }

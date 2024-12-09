@@ -5,8 +5,11 @@ import bodyParser from "body-parser";
 import cookieParser from "cookie-parser";
 import cors from "cors";
 import { initWebSocketServer } from "./services/WebSocketService";
-import MainRouter from "./router/MainRouter";
+import { attachControllers } from "@decorators/express";
 import { init } from "./config/DB";
+import UserController from "./controllers/UserController";
+import ChatController from "./controllers/ChatController";
+import { checkAccessToken } from "./middlewares/AuthMiddleware";
 
 dotenv.config();
 
@@ -19,30 +22,35 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(cookieParser());
 
+// Middleware
+app.use(checkAccessToken);
+
 app.use(
   session({
     secret: process.env.SESSION_SECRET || "default_secret",
     resave: false,
     saveUninitialized: false,
     cookie: {
-      secure: process.env.NODE_ENV === "production",
+      secure: false,
       httpOnly: true,
       maxAge: 1000 * 60 * 60,
     },
   }),
 );
 
-app.use(
-  cors({
-    origin: process.env.CLIENT_ORIGIN || "http://localhost:4200",
-    methods: ["GET", "POST", "OPTIONS"],
-    allowedHeaders: ["Content-Type", "Authorization"],
-    credentials: true,
-  }),
-);
+const corsOptions = {
+  origin: ["http://localhost:4200"],
+  methods: ["GET", "POST", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization"],
+  credentials: true,
+};
+app.use(cors(corsOptions));
+
+app.options("*", cors(corsOptions));
 
 app.use(express.static("public"));
-app.use("/", MainRouter);
+
+await attachControllers(app, [UserController, ChatController]);
 
 const PORT: number = parseInt(process.env.PORT || "8000", 10);
 const server = app.listen(PORT, () => {

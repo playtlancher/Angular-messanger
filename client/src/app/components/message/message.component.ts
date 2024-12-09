@@ -1,30 +1,31 @@
 import {
   Component,
-  ComponentRef, inject,
+  ComponentRef,
+  inject,
   Input,
   ViewChild,
   ViewContainerRef,
 } from '@angular/core';
-import {Message, ReceivedFile, ReceivedMessage} from '../../data/interfaces/message.interface';
 import { WebSocketService } from '../../data/services/web-socket.service';
+import { FileService } from '../../data/services/file.service';
 import { ContextMenuComponent } from '../context-menu/context-menu.component';
 import { FormsModule } from '@angular/forms';
-import { NgIf } from '@angular/common';
-import {HttpClient} from '@angular/common/http';
+import { Message, MessageFile } from '../../data/interfaces/message.interface';
 
 @Component({
   selector: 'app-message',
   templateUrl: './message.component.html',
   styleUrls: ['./message.component.scss'],
   standalone: true,
-  imports: [FormsModule, NgIf],
+  imports: [FormsModule],
 })
 export class MessageComponent {
-  @Input() message!: ReceivedMessage;
+  @Input() message!: Message;
   @Input() user!: number;
   @ViewChild('menuContainer', { read: ViewContainerRef })
   menuContainer!: ViewContainerRef;
-  http = inject(HttpClient)
+
+  fileService = inject(FileService);
 
   private static activeMenuRef: ComponentRef<ContextMenuComponent> | null =
     null;
@@ -33,35 +34,35 @@ export class MessageComponent {
 
   constructor(public webSocketService: WebSocketService) {}
 
-  onRightClick(event: MouseEvent) {
+  public openContextMenu(event: MouseEvent ) {
     event.preventDefault();
     if (this.message.from === this.user) {
-      if (MessageComponent.activeMenuRef) {
-        MessageComponent.activeMenuRef.destroy();
-      }
-
+      this.destroyActiveMenu();
       const menuRef = this.menuContainer.createComponent(ContextMenuComponent);
-
       MessageComponent.activeMenuRef = menuRef;
 
       menuRef.instance.action.subscribe((action: string) => {
-        if (action === 'Delete') {
-          this.webSocketService.deleteMessage(this.message);
-        }
-        if (action === 'Update') {
-          this.isEditing = true;
-          this.updatedText = this.message.text;
-        }
-        menuRef.destroy();
-        MessageComponent.activeMenuRef = null;
+        this.handleContextMenuAction(action);
       });
     }
   }
 
-  onClickOutside() {
-    if (MessageComponent.activeMenuRef) {
-      MessageComponent.activeMenuRef.destroy();
+  private handleContextMenuAction(action: string) {
+    if (action === 'Delete') {
+      this.deleteMessage();
+    } else if (action === 'Update') {
+      this.startEditing();
     }
+    this.destroyActiveMenu();
+  }
+
+  private deleteMessage() {
+    this.webSocketService.deleteMessage(this.message);
+  }
+
+  private startEditing() {
+    this.isEditing = true;
+    this.updatedText = this.message.text;
   }
 
   saveUpdatedMessage() {
@@ -71,28 +72,23 @@ export class MessageComponent {
     }
     this.isEditing = false;
   }
+
   cancelUpdateMessage() {
     this.isEditing = false;
   }
 
-  downloadFile(file: ReceivedFile) {
-    console.log("trying to download file");
-
-    this.http.get(`http://localhost:8000/file/${file.id}`, { responseType: 'blob' }).subscribe(
-      (response: Blob) => {
-        const fileURL = window.URL.createObjectURL(response);
-
-        const a = document.createElement('a');
-        a.href = fileURL;
-        a.download = file.name;
-        a.click();
-
-        window.URL.revokeObjectURL(fileURL);
-      },
-      (error) => {
-        console.error("Error downloading file", error);
-      }
-    );
+  downloadFile(file: MessageFile) {
+    this.fileService.installFile(file);
   }
 
+  private destroyActiveMenu() {
+    if (MessageComponent.activeMenuRef) {
+      MessageComponent.activeMenuRef.destroy();
+      MessageComponent.activeMenuRef = null;
+    }
+  }
+
+  onClickOutside() {
+    this.destroyActiveMenu();
+  }
 }

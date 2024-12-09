@@ -1,13 +1,4 @@
-import {
-  Table,
-  Column,
-  Model,
-  ForeignKey,
-  PrimaryKey,
-  AllowNull,
-  AutoIncrement,
-  DataType,
-} from "sequelize-typescript";
+import { Table, Column, Model, ForeignKey, PrimaryKey, AllowNull, AutoIncrement, DataType } from "sequelize-typescript";
 import User from "./User";
 import Chat from "./Chat";
 

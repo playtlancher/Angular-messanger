@@ -2,13 +2,16 @@ import { inject, Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { catchError, tap, throwError } from 'rxjs';
 import { TokenResponse, DecodedToken } from '../interfaces/auth.interface';
+import {environment} from '../../../environments/environment';
+
+
 
 @Injectable({
   providedIn: 'root',
 })
 export class AuthService {
   private http = inject(HttpClient);
-  private readonly apiUrl = 'http://localhost:8000';
+  private readonly base_url = environment['BASE_URL'];
   private accessToken: string = '';
   private refreshToken: string = '';
 
@@ -20,7 +23,7 @@ export class AuthService {
   }
 
   register(username: string, password: string, confirmPassword: string) {
-    return this.http.post(`${this.apiUrl}/registration`, {
+    return this.http.post(`${this.base_url}/registration`, {
       username,
       password,
       confirmPassword,
@@ -30,7 +33,7 @@ export class AuthService {
   login(username: string, password: string) {
     return this.http
       .post<TokenResponse>(
-        `${this.apiUrl}/login`,
+        `${this.base_url}/login`,
         { username, password },
         { withCredentials: true },
       )
@@ -43,10 +46,6 @@ export class AuthService {
       );
   }
 
-  logout() {
-    this.clearTokens();
-  }
-
   refreshAccessToken() {
     localStorage.removeItem('token');
     localStorage.removeItem('refreshToken');
@@ -56,7 +55,7 @@ export class AuthService {
 
     return this.http
       .post<TokenResponse>(
-        `${this.apiUrl}/refresh-token`,
+        `${this.base_url}/refresh-token`,
         {},
         {
           withCredentials: true,
@@ -68,7 +67,6 @@ export class AuthService {
         }),
         catchError((error) => {
           console.error('Failed to refresh token:', error);
-          this.logout();
           return throwError(() => error);
         }),
       );
@@ -91,10 +89,6 @@ export class AuthService {
   getDecodedToken(): DecodedToken {
     const token = this.accessToken;
     return this.decodeJWT(token);
-  }
-
-  getToken() {
-    return this.accessToken;
   }
 
   private decodeJWT(token: string): DecodedToken {

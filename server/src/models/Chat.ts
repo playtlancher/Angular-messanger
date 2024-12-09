@@ -1,12 +1,4 @@
-import {
-  Table,
-  Column,
-  Model,
-  PrimaryKey,
-  AutoIncrement,
-  AllowNull,
-  DataType,
-} from "sequelize-typescript";
+import { Table, Column, Model, PrimaryKey, AutoIncrement, AllowNull, DataType } from "sequelize-typescript";
 
 @Table({
   tableName: "chats",

@@ -5,7 +5,6 @@ import Message from "../models/Message";
 import ChatUser from "../models/ChatUser";
 import Chat from "../models/Chat";
 import File from "../models/File";
-
 dotenv.config();
 
 const sequelize = new Sequelize({
@@ -14,6 +13,7 @@ const sequelize = new Sequelize({
   username: process.env.DB_USER as string,
   password: process.env.DB_PASSWORD as string,
   host: process.env.DB_HOST,
+  port: process.env.DB_PORT,
   models: [User, Message, ChatUser, Chat, File],
 });
 

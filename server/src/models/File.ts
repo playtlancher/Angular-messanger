@@ -1,20 +1,19 @@
-import {AutoIncrement, Column, DataType, ForeignKey, Model, NotNull, PrimaryKey, Table} from "sequelize-typescript";
+import { Column, DataType, ForeignKey, Model, PrimaryKey, Table } from "sequelize-typescript";
 import Message from "./Message";
 
-
 @Table({
-    tableName: 'uploadedfiles',
-    timestamps: false,
+  tableName: "uploadedfiles",
+  timestamps: false,
 })
-export default class File extends Model{
-    @PrimaryKey
-    @Column(DataType.STRING)
-    declare id: string;
+export default class File extends Model {
+  @PrimaryKey
+  @Column(DataType.STRING)
+  declare id: string;
 
-    @ForeignKey(() => Message)
-    @Column(DataType.INTEGER)
-    declare message_id: number;
+  @ForeignKey(() => Message)
+  @Column(DataType.INTEGER)
+  declare message_id: number;
 
-    @Column(DataType.STRING)
-    declare name: string;
+  @Column(DataType.STRING)
+  declare name: string;
 }

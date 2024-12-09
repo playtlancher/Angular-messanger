@@ -1,37 +1,64 @@
-import * as userService from "../services/UserService";
-import { Request, Response, NextFunction } from "express";
-import jwt from "jsonwebtoken";
+import UserService from "../services/UserService";
+import express from "express";
+import { Get, Post, Controller, Response, Request } from "@decorators/express";
 
-async function postLogin(
-  req: Request,
-  res: Response,
-  next: NextFunction,
-): Promise<void> {
-  try {
-    await userService.login(req, res, next);
-  } catch (error) {
-    next(error);
+@Controller("/")
+export default class UserController {
+  constructor(private readonly userService: UserService) {
+    this.userService = new UserService();
+  }
+
+  @Post("/login")
+  async postLogin(
+    @Response() res: express.Response,
+    @Request() req: express.Request,
+    next: express.NextFunction,
+  ): Promise<unknown> {
+    try {
+      return this.userService.login(req, res);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  @Post("/registration")
+  async postRegistration(
+    @Response() res: express.Response,
+    @Request() req: express.Request,
+  ): Promise<void> {
+    try {
+      await this.userService.register(req, res);
+    } catch (error) {
+      res.status(500).send("Internal server error");
+    }
+  }
+
+  @Post("/refresh-access-token")
+  async refreshAccessToken(
+    @Response() res: express.Response,
+    @Request() req: express.Request,
+  ): Promise<void> {
+    await this.userService.refreshAccessToken(req, res);
+  }
+
+  @Get("/logout")
+  async logout(
+    @Response() res: express.Response,
+    @Request() req: express.Request,
+  ): Promise<void> {
+    res.clearCookie("accessToken", {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+    });
+
+    res.status(200).send("User logged out successfully");
+  }
+
+  @Get("/users")
+  async getUsers(
+    @Response() res: express.Response,
+    @Request() req: express.Request,
+  ): Promise<void> {
+    await this.userService.getUsers(req, res);
   }
 }
-
-async function postRegistration(req: Request, res: Response): Promise<void> {
-  const { username, password, confirmPassword } = req.body;
-  try {
-    await userService.register(username, password, confirmPassword, res);
-  } catch (error) {
-    res.status(500).send("Internal server error");
-  }
-}
-function refreshAccessToken(req: Request, res: Response): void {
-  userService.refreshAccessToken(req, res);
-}
-function logout(req: Request, res: Response): void {
-  res.clearCookie("accessToken", {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-  });
-
-  res.status(200).send("User logged out successfully");
-}
-
-export { postLogin, logout, postRegistration, refreshAccessToken };

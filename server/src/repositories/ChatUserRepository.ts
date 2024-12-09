@@ -1,21 +1,24 @@
 import { WhereOptions } from "sequelize";
 import ChatUser from "../models/ChatUser";
 
-async function checkUserChatConnection(
-  userId: number,
-  chatId: number,
-): Promise<boolean> {
-  const checked = await ChatUser.findOne({
-    where: { user_id: userId, chat_id: chatId },
-  });
-  return !!checked;
-}
+export default class ChatUserRepository {
+  createConnection = async (userId: number, chatId: number): Promise<ChatUser> => {
+    return await ChatUser.create({
+      user_id: userId,
+      chat_id: chatId,
+    });
+  };
 
-async function findAllBy(params: WhereOptions<ChatUser>): Promise<ChatUser[]> {
-  const chatUsers = await ChatUser.findAll({
-    where: params,
-  });
-  return chatUsers || [];
-}
+  checkUserChatConnection = async (userId: number, chatId: number): Promise<boolean> => {
+    return !!(await ChatUser.findOne({
+      where: { user_id: userId, chat_id: chatId },
+    }));
+  };
 
-export { checkUserChatConnection, findAllBy };
+  findAllBy = async (params: WhereOptions<ChatUser>): Promise<ChatUser[]> => {
+    const chatUsers = await ChatUser.findAll({
+      where: params,
+    });
+    return chatUsers || [];
+  };
+}

@@ -1,68 +1,42 @@
-<div style="position: sticky; top: 0; z-index: 10" class="flex items-center justify-between bg-indigo-600 p-4 shadow-lg">
-  <div class="flex items-center">
-    <!--    <img-->
-    <!--      src=""-->
-    <!--      alt="User Avatar"-->
-    <!--      class="w-12 h-12 rounded-full mr-4"-->
-    <!--    />-->
-    <div class="w-12 h-12 bg-blue-500 rounded-full mr-4"></div>
-    <div>
-      <h2 class="text-xl font-semibold">{{ chatName }}</h2>
-      <!--      <p class="text-sm text-gray-300">Online</p>-->
+<div #chatMessage style="position: relative; height: 100vh; max-height: 100vh;">
+  <div style="position: sticky; top: 0; z-index: 10" class="flex items-center justify-between bg-indigo-600 p-4 shadow-lg">
+    <div class="flex items-center">
+      <div class="w-12 h-12 bg-blue-500 rounded-full mr-4"></div>
+      <div>
+        <h2 class="text-xl font-semibold">{{ chatName }}</h2>
+      </div>
+    </div>
+    <div class="flex space-x-4 text-white">
+      <a routerLink="/" class="text-2xl hover:text-gray-300">🔙</a>
     </div>
   </div>
-  <div class="flex space-x-4 text-white">
-    <a routerLink="/" class="text-2xl hover:text-gray-300">🔙</a>
-<!--    <a class="text-2xl hover:text-gray-300">⚙️</a>-->
-  </div>
-</div>
 
-<div id="chatMessages" class="flex-1 overflow-y-auto pt-10 px-6 pb-6 space-y-4 scrollbar-hide">
-  @for (message of webSocketService.messages; track message.id) {
-    <app-message [user]="userId" [message]="message"></app-message>
-  }
-</div>
-
-<div
-  style="width: 100%; position: sticky; bottom: 0"
-  class="flex flex-col z-10 bg-gray-800 p-4 border-t border-gray-700"
->
-  <div #FileContainer class="mb-2 flex flex-wrap gap-2">
-    @for(file of this.files; track file.name) {
-      <app-file [file]="file" (action)="deleteFile(file)"></app-file>
+  <div id="chatMessages" class="pt-10 px-6 pb-6 space-y-4 overflow-y-auto flex-1 max-h-[calc(100vh-165px)]">
+    @for (message of webSocketService.messages; track message.id) {
+      <app-message [user]="userId" [message]="message"></app-message>
     }
+    <div #messageEnd></div>
+    {{scrollToBottom()}}
   </div>
 
-  <form
-    (submit)="sendMessage()"
-    [formGroup]="messageForm"
-    class="flex items-center w-full"
-  >
-    <div class="file-upload">
-      <label for="file" class="custom-file-label">
-        <span class="icon">📂</span>
-      </label>
-      <input
-        type="file"
-        id="file"
-        multiple
-        [formControlName]="'file'"
-        (change)="onFileSelected($event)"
-      />
+  <div style="position: absolute; bottom: 0; left: 0; right: 0; width: 100%;" class="flex flex-col bg-gray-800 p-4 border-t border-gray-700">
+    <div #FileContainer class="mb-2 flex flex-wrap gap-2">
+      @for (file of this.files; track file.name) {
+        <app-file [file]="file" (action)="deleteFile(file)"></app-file>
+      }
     </div>
 
-    <input
-      type="text"
-      id="MessageInput"
-      [formControlName]="'message'"
-      class="flex-1 bg-gray-700 p-3 rounded-lg text-sm text-gray-200 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-      placeholder="Send a message..."
-    />
+    <form (submit)="sendMessage()" [formGroup]="messageForm" class="flex items-center w-full">
+      <div class="file-upload">
+        <label for="file" class="custom-file-label">
+          <span class="icon">📂</span>
+        </label>
+        <input type="file" id="file" multiple [formControlName]="'file'" (change)="onFileSelected($event)" />
+      </div>
 
-    <button
-      class="ml-4 px-4 py-2 bg-indigo-600 text-white rounded-lg shadow hover:bg-indigo-700"
-    >
-      Send
-    </button>
-  </form>
+      <input type="text" id="MessageInput" [formControlName]="'message'" class="flex-1 bg-gray-700 p-3 rounded-lg text-sm text-gray-200 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="Send a message..." />
+
+      <button class="ml-4 px-4 py-2 bg-indigo-600 text-white rounded-lg shadow hover:bg-indigo-700">Send</button>
+    </form>
+  </div>
 </div>

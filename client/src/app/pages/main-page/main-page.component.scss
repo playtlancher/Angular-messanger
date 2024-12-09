@@ -1,5 +1,5 @@
 #activeChat {
-  background-image: url("./chat-bg-pattern-dark.ad38368a9e8140d0ac7d.png");
+  background-image: url("../../../../public/assets/images/chat-bg.png");
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
@@ -7,4 +7,15 @@
 }
 #side-panel{
   border-right: 1px solid #4e45e3;
+  overflow-y: auto;
+  max-height: 100vh;
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
 }

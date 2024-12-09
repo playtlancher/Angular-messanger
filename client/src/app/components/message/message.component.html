@@ -1,45 +1,46 @@
-<div class="relative" (contextmenu)="onRightClick($event)" (click)="onClickOutside()">
+<div class="d-flex" (contextmenu)="openContextMenu($event)" (click)="onClickOutside()">
   @if (message.from !== user) {
     <div class="message flex items-start">
-      <div class="max-w-xs bg-indigo-500 text-white p-4 rounded-lg shadow">
+      <div class="flex-col flex max-w-xs p-4 rounded-lg shadow bg-indigo-500 text-white">
         <span>{{ message.text }}</span>
+        @if (message.files && message.files.length > 0) {
+          <div class="file-container mt-2">
+            @for (file of message.files;track file.id) {
+              <div style="cursor:pointer" (click)="downloadFile(file)" class="file-item bg-indigo-600 p-2 rounded-lg flex items-center mt-1">
+                <img src="./assets/images/file.png" alt="icon" class="w-5 h-5 mr-2" />
+                <span class="truncate text-sm">{{ file.name }}</span>
+              </div>
+            }
+          </div>
+        }
+        <span class="text-xs text-gray-400">{{ message.date }}</span>
       </div>
-      <span class="text-xs text-gray-400 ml-2">{{ message.date }}</span>
     </div>
   } @else {
-    <div class="message flex items-end justify-end">
-      @if (message.files && message.files.length > 0) {
-        <div class="file-container mb-2 flex gap-2">
-          @for (file of message.files; track file.id) {
-            <button (click)="downloadFile(file)" class="bg-blue-500 text-white p-2 rounded-lg">
-              <div class="file-item bg-gray-600 text-white p-2 rounded-lg shadow flex items-center">
-                <span>{{ file.name }}</span>
-              </div>
-            </button>
-          }
-        </div>
-      }
-      <span class="text-xs text-gray-400 mr-2">{{ message.date }}</span>
-      <div style="flex-direction: column" class="flex">
-        <div class="max-w-xs bg-gray-700 text-white p-4 rounded-lg shadow">
+    <div class="flex-col message flex items-end justify-end">
+      <div class="max-w-xs p-4 rounded-lg shadow bg-gray-700 text-white">
+        <div class="flex flex-col">
           @if (!isEditing) {
             <span>{{ message.text }}</span>
           } @else {
-            <textarea style="color:black" [(ngModel)]="updatedText"
-                      class="w-full p-2 rounded-lg"></textarea>
+            <textarea [(ngModel)]="updatedText" class="w-full p-2 rounded-lg mt-2 text-black" rows="4"></textarea>
+            <button (click)="cancelUpdateMessage()" class="bg-blue-500 text-white p-2 rounded-lg mt-2 w-full">Cancel</button>
+            <button (click)="saveUpdatedMessage()" class="bg-blue-500 text-white p-2 rounded-lg mt-2 w-full">Save</button>
+          }
+          @if (message.files && message.files.length > 0) {
+            <div class="file-container mt-2">
+              @for (file of message.files; track file.id) {
+                <div style="cursor:pointer" (click)="downloadFile(file)" class="file-item bg-gray-600 p-2 rounded-lg flex items-center mt-1">
+                  <img src="./assets/images/file.png" alt="icon" class="w-5 h-5 mr-2" />
+                  <span class="truncate text-sm">{{ file.name }}</span>
+                </div>
+              }
+            </div>
           }
         </div>
-        @if (isEditing) {
-
-          <button (click)="cancelUpdateMessage()" class="bg-blue-500 text-white p-2 rounded-lg mt-2">
-            Cancel
-          </button>
-          <button (click)="saveUpdatedMessage()" class="bg-blue-500 text-white p-2 rounded-lg mt-2">
-            Save
-          </button>
-        }
-        <div #menuContainer></div>
+        <span class="text-xs float-end text-gray-400">{{ message.date }}</span>
       </div>
+      <div #menuContainer></div>
     </div>
   }
 </div>

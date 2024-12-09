@@ -1,13 +1,13 @@
-import { Component, inject } from '@angular/core';
+import {Component, inject} from '@angular/core';
 import {
   FormControl,
   FormGroup,
   ReactiveFormsModule,
   Validators,
 } from '@angular/forms';
-import { AuthService } from '../../data/services/auth.service';
-import { NgIf } from '@angular/common';
-import { RouterLink } from '@angular/router';
+import {AuthService} from '../../data/services/auth.service';
+import {NgIf} from '@angular/common';
+import {Router, RouterLink} from '@angular/router';
 
 @Component({
   selector: 'app-register',
@@ -20,6 +20,7 @@ export class RegisterComponent {
   authService = inject(AuthService);
   registrationError: string | null = null;
   passwordMismatch: boolean = false;
+  router = inject(Router);
 
   registrationForm = new FormGroup({
     username: new FormControl<string | null>(null, Validators.required),
@@ -47,7 +48,9 @@ export class RegisterComponent {
     }
 
     this.authService.register(username, password, confirmPassword).subscribe({
-      next: (response) => console.log(response),
+      next: (response) => {
+        this.router.navigate(['/login']);
+      },
       error: (err) => {
         this.registrationError = err.error.message;
       },
