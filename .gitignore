@@ -15,6 +15,3 @@
 !.vscode/launch.json
 !.vscode/extensions.json
 .history/*
-
-docker-compile.yaml
-Dockerfile

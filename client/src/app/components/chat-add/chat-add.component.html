@@ -1,0 +1,36 @@
+<div class="flex justify-center items-center h-screen">
+  <div class="bg-indigo-600 p-6 rounded-lg shadow-lg w-full max-w-sm">
+    <h2 class="text-2xl font-semibold text-white text-center mb-4">Add New Chat</h2>
+    <form [formGroup]="chatForm" (ngSubmit)="addChat()" class="space-y-4">
+        <input
+          id="chatName"
+          type="text"
+          formControlName="chatName"
+          class="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-gray-800 text-white"
+          placeholder="Enter chat name"
+          name="chatName"
+          required
+        />
+        <select
+          id="user"
+          formControlName="username"
+          class="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-gray-800 text-white"
+          name="user"
+          required
+        >
+          @for (user of users; track user.id){
+            {{user}}
+          <option [value]="user.username">{{user.username}}</option>
+          }
+        </select>
+      <div class="mt-6">
+        <button
+          type="submit"
+          class="w-full py-3 bg-indigo-700 text-white rounded-lg shadow hover:bg-indigo-800 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+        >
+          Add Chat
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
