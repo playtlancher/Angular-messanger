@@ -1,12 +1,12 @@
 import { Component, EventEmitter, Output } from '@angular/core';
 
 @Component({
-  selector: 'app-context-menu',
-  templateUrl: './context-menu.component.html',
-  styleUrls: ['./context-menu.component.scss'],
+  selector: 'app-message-context-menu',
+  templateUrl: './message-context-menu.component.html',
+  styleUrls: ['./message-context-menu.component.scss'],
   standalone: true,
 })
-export class ContextMenuComponent {
+export class MessageContextMenuComponent {
   @Output() action = new EventEmitter<string>();
 
   selectAction(action: string) {

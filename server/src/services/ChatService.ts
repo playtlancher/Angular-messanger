@@ -1,9 +1,11 @@
-import DecodeJWT from "../utilities/DecodeJWT";
-import { Request, Response } from "express";
 import ChatUserRepository from "../repositories/ChatUserRepository";
 import MessageRepository from "../repositories/MessageRepository";
 import ChatRepository from "../repositories/ChatRepository";
 import UserRepository from "../repositories/UserRepository";
+import DecodedToken from "../interfaces/DecodedToken";
+import Message from "../models/Message";
+import Chat from "../models/Chat";
+import { ServiceResponse } from "../interfaces/ServiceResponse";
 
 export default class ChatService {
   private chatUserRepository = new ChatUserRepository();
@@ -11,94 +13,68 @@ export default class ChatService {
   private chatRepository = new ChatRepository();
   private userRepository = new UserRepository();
 
-  getChats = async (req: Request, res: Response): Promise<void> => {
-    const token = DecodeJWT(req.cookies.accessToken, res);
-    if (!token) return;
+  public getChats = async (token: DecodedToken): Promise<ServiceResponse> => {
+    const userChats = await this.chatUserRepository.findAllBy({
+      user_id: token.id,
+    });
+    const chats = await Promise.all(userChats.map(this.getChatDetails));
+    return {
+      status: 200,
+      message: "Chats retrieved successfully",
+      payload: chats,
+    };
+  };
 
-    try {
-      const chatConnections = await this.chatUserRepository.findAllBy({ user_id: token.id });
-      if (!chatConnections.length) {
-        res.status(404).json({ message: "No chats found for this user." });
-        return;
-      }
-
-      const chats = await Promise.all(chatConnections.map(this.fetchChat));
-      res.status(200).json(chats);
-    } catch (error) {
-      console.error("Error fetching chats:", error);
-      res.status(500).json({ message: "Internal server error. Please try again later." });
+  public getChatMessages = async (chatId: number, token: DecodedToken): Promise<ServiceResponse> => {
+    const hasAccess = await this.hasChatAccess(token.id, chatId);
+    if (!hasAccess) {
+      return { status: 403, message: "Access to this chat is forbidden" };
     }
+    const messages = await this.getMessagesForChat(chatId);
+    return {
+      status: 200,
+      message: "Messages retrieved successfully",
+      payload: messages,
+    };
   };
 
-  getChatMessages = async (req: Request, res: Response): Promise<void> => {
-    const chatId = Number(req.params.chat_id);
-    const token = DecodeJWT(req.cookies.accessToken, res);
-    if (!token) return;
+  public createChat = async (name: string, username: string, token: DecodedToken): Promise<ServiceResponse> => {
+    const chat = await this.chatRepository.createChat(name);
 
-    try {
-      const hasAccess = await this.checkUserAccess(token.id, chatId);
-      if (!hasAccess) {
-        res.status(403).json({ message: "You do not have access to this chat." });
-        return;
-      }
-
-      const messages = await this.fetchMessages(chatId);
-      res.status(200).json(messages);
-    } catch (error) {
-      console.error("Error fetching messages:", error);
-      res.status(500).json({ message: "Internal server error. Please try again later." });
+    const user = await this.userRepository.findOneBy({ username });
+    if (!user) {
+      return { status: 404, message: "User not found" };
     }
+
+    await Promise.all([this.chatUserRepository.createConnection(token.id, chat.id), this.chatUserRepository.createConnection(user.id, chat.id)]);
+
+    return {
+      status: 200,
+      message: "Chats created successfully",
+      payload: chat,
+    };
   };
 
-  postChat = async (req: Request, res: Response): Promise<void> => {
-    const { username, name } = req.body;
-    const token = DecodeJWT(req.cookies.accessToken, res);
-    if (!token) return;
-
-    try {
-      const chat = await this.chatRepository.createChat(name);
-      if (!chat) {
-        res.status(500).json({ message: "Failed to create chat." });
-        return;
-      }
-
-      const user = await this.userRepository.findOneBy({ username });
-      if (!user) {
-        res.status(404).json({ message: "User not found." });
-        return;
-      }
-
-      await Promise.all([
-        this.chatUserRepository.createConnection(token.id, chat.id),
-        this.chatUserRepository.createConnection(user.id, chat.id),
-      ]);
-
-      res.status(201).json(chat);
-    } catch (error) {
-      console.error("Error creating chat:", error);
-      res.status(500).json({ message: "Internal server error. Please try again later." });
+  private getChatDetails = async (chat: { chat_id: number }): Promise<Chat | null> => {
+    const chatDetails = await this.chatRepository.findOneBy({
+      id: chat.chat_id,
+    });
+    if (!chatDetails) {
+      return null;
     }
+    return chatDetails;
   };
 
-  private fetchChat = async (chat: any): Promise<any> => {
-    const result = await this.chatRepository.findOneBy({ id: chat.chat_id });
-    if (!result) throw new Error(`Chat ID ${chat.chat_id} not found`);
-    return result;
-  };
-
-  private fetchMessages = async (chatId: number): Promise<any[]> => {
+  private getMessagesForChat = async (chatId: number): Promise<Message[]> => {
     const messages = await this.messageRepository.findAllBy({ chat: chatId });
-    if (!messages.length) {
-      throw new Error("No messages found for this chat.");
-    }
     return messages.sort((a, b) => a.date.getTime() - b.date.getTime());
   };
 
-  private checkUserAccess = async (userId: number, chatId: number): Promise<boolean> => {
+  private hasChatAccess = async (userId: number, chatId: number): Promise<boolean> => {
     const connections = await this.chatUserRepository.findAllBy({
       user_id: userId,
       chat_id: chatId,
     });
-    return connections.length > 0;
+    return !!connections.length;
   };
 }

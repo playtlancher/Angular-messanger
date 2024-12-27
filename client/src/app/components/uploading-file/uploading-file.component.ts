@@ -1,13 +1,13 @@
 import { Component, EventEmitter, Input, Output } from '@angular/core';
 
 @Component({
-  selector: 'app-file',
+  selector: 'uploading-file',
   imports: [],
-  templateUrl: './file.component.html',
-  styleUrls: ['./file.component.scss'],
+  templateUrl: './uploading-file.component.html',
+  styleUrls: ['./uploading-file.component.scss'],
   standalone: true,
 })
-export class FileComponent {
+export class UploadingFileComponent {
   @Input() file!: File;
   @Output() action = new EventEmitter<File>();
 

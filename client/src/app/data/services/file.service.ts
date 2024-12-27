@@ -1,20 +1,22 @@
-import {inject, Injectable} from '@angular/core';
-import {MessageFile} from '../interfaces/message.interface';
-import {HttpClient} from '@angular/common/http';
-import {environment} from '../../../environments/environment';
+import { Injectable } from '@angular/core';
+import { MessageFile } from '../interfaces/message.interface';
+import { HttpClient } from '@angular/common/http';
+import { environment } from '../../../environments/environment';
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class FileService {
-  http = inject(HttpClient);
-  base_url:string = environment['BASE_URL'];
+  base_url: string = environment['BASE_URL'];
 
-  constructor() { }
+  constructor(private http: HttpClient) {}
 
-  installFile(file: MessageFile){
+  installFile(file: MessageFile) {
     this.http
-      .get(`${this.base_url}/file/${file.id}`, { responseType: 'blob', withCredentials: true })
+      .get(`${this.base_url}/file/${file.id}`, {
+        responseType: 'blob',
+        withCredentials: true,
+      })
       .subscribe(
         (response: Blob) => {
           const fileURL = window.URL.createObjectURL(response);
@@ -27,7 +29,7 @@ export class FileService {
           window.URL.revokeObjectURL(fileURL);
         },
         (error) => {
-          console.error('Error downloading file', error);
+          console.error('Error downloading uploading-file', error);
         },
       );
   }

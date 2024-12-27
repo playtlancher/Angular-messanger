@@ -10,12 +10,15 @@ import Message from "../models/Message";
 import MessageRepository from "../repositories/MessageRepository";
 import UserRepository from "../repositories/UserRepository";
 import ChatUserRepository from "../repositories/ChatUserRepository";
+import ChatService from "./ChatService";
+import DecodeJWT from "../utilities/DecodeJWT";
 
 const clients: Map<string, WebSocket> = new Map();
 const fileRepository = new FileRepository();
 
 let wss: WebSocketServer;
 const messageRepository = new MessageRepository();
+const chatService = new ChatService();
 const userRepository = new UserRepository();
 const chatUserRepository = new ChatUserRepository();
 
@@ -30,8 +33,33 @@ const initWebSocketServer = (server: any): WebSocketServer => {
     if (chatId) {
       try {
         console.log(`New client connected: ${id}`);
-        const messages = await messageRepository.findAllBy({ chat: chatId });
+        console.log(req.headers.cookie);
+        const token = getCookieValue(req.headers.cookie, "accessToken");
+        if (!token) {
+          ws.send(
+            JSON.stringify({
+              error: "Authentication token is missing or invalid.",
+            }),
+          );
+          console.log(token);
 
+          return;
+        }
+        const decodedToken = DecodeJWT(token);
+        if (!decodedToken) {
+          ws.send(
+            JSON.stringify({
+              error: "Authentication token is missing or invalid.",
+            }),
+          );
+          console.log(decodedToken);
+          return;
+        }
+        const result = await chatService.getChatMessages(chatId, decodedToken);
+        if (result.status !== 200) {
+          return;
+        }
+        const messages = result.payload as [];
         messages.sort((a: any, b: any) => a.date - b.date);
 
         const messageFile = await Promise.all(
@@ -56,14 +84,11 @@ const initWebSocketServer = (server: any): WebSocketServer => {
           console.log(`Client disconnected: ${id}`);
         });
       } catch (error) {
-        console.error(
-          `Error handling WebSocket connection for chat ${chatId}:`,
-          error,
-        );
+        console.error(`Error handling WebSocket connection for chat ${chatId}:`, error);
         ws.send(JSON.stringify({ error: "Failed to load messages" }));
       }
     } else {
-      ws.send(JSON.stringify({ error: "Invalid chat ID" }));
+      ws.send(JSON.stringify({ error: "Invalid chat-sidebar-item ID" }));
       ws.close();
     }
   });
@@ -83,11 +108,7 @@ async function onMessage(data: string): Promise<void> {
     if ((await isUserInChat(user.id, chat)) && user.id === from) {
       let event = { type, payload: {} };
       if (type === "Post") {
-        const newMessage = await messageRepository.createMessage(
-          text,
-          user.id,
-          chat,
-        );
+        const newMessage = await messageRepository.createMessage(text, user.id, chat);
 
         let attachedFiles: Array<{ id: string; name: string }> = [];
 
@@ -102,11 +123,7 @@ async function onMessage(data: string): Promise<void> {
             const fileUUID = uuid.v4();
             const filePath = path.join(uploadsDir, fileUUID);
 
-            const createdFile = await fileRepository.createFile(
-              fileUUID,
-              newMessage!.id,
-              file.name,
-            );
+            const createdFile = await fileRepository.createFile(fileUUID, newMessage!.id, file.name);
 
             attachedFiles.push({
               id: createdFile!.id,
@@ -163,10 +180,7 @@ async function onMessage(data: string): Promise<void> {
 
       if (type === "Update") {
         if (from === user.id) {
-          const updatedMessage = await messageRepository.updateMessage(
-            id,
-            text,
-          );
+          const updatedMessage = await messageRepository.updateMessage(id, text);
           event.type = "Update";
           event.payload = { message: updatedMessage };
         }
@@ -179,15 +193,12 @@ async function onMessage(data: string): Promise<void> {
       });
     }
   } catch (error) {
-    console.error("Error handling message:", error);
+    console.error("Error handling chat-sidebar-item-message:", error);
   }
 }
 
 async function validateUser(token: string): Promise<any | null> {
-  const decoded: any = jwt.verify(
-    token,
-    process.env.ACCESS_TOKEN_SECRET as string,
-  );
+  const decoded: any = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET as string);
   const id = decoded.id;
   return await userRepository.findOneBy({ id });
 }
@@ -198,5 +209,8 @@ async function isUserInChat(userId: number, chatId: number): Promise<boolean> {
   }
   return false;
 }
-
+function getCookieValue(cookieString: string, key: string) {
+  const cookies = cookieString ? Object.fromEntries(cookieString.split("; ").map((cookie) => cookie.split("="))) : {};
+  return cookies[key];
+}
 export { initWebSocketServer };

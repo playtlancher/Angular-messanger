@@ -1,13 +1,13 @@
-import {Component, inject} from '@angular/core';
+import { Component } from '@angular/core';
 import {
   FormControl,
   FormGroup,
   ReactiveFormsModule,
   Validators,
 } from '@angular/forms';
-import {AuthService} from '../../data/services/auth.service';
-import {NgIf} from '@angular/common';
-import {Router, RouterLink} from '@angular/router';
+import { AuthService } from '../../data/services/auth.service';
+import { NgIf } from '@angular/common';
+import { Router, RouterLink } from '@angular/router';
 
 @Component({
   selector: 'app-register',
@@ -17,10 +17,13 @@ import {Router, RouterLink} from '@angular/router';
   styleUrl: './register.component.scss',
 })
 export class RegisterComponent {
-  authService = inject(AuthService);
   registrationError: string | null = null;
   passwordMismatch: boolean = false;
-  router = inject(Router);
+
+  constructor(
+    private authService: AuthService,
+    private router: Router,
+  ) {}
 
   registrationForm = new FormGroup({
     username: new FormControl<string | null>(null, Validators.required),

@@ -13,7 +13,7 @@
             }
           </div>
         }
-        <span class="text-xs text-gray-400">{{ message.date }}</span>
+        <span class="text-xs text-gray-400">{{ message.date | date: 'd MMMM HH:mm' }}</span>
       </div>
     </div>
   } @else {
@@ -38,7 +38,7 @@
             </div>
           }
         </div>
-        <span class="text-xs float-end text-gray-400">{{ message.date }}</span>
+        <span class="text-xs float-end text-gray-400">{{ message.date | date: 'd MMMM HH:mm' }}</span>
       </div>
       <div #menuContainer></div>
     </div>

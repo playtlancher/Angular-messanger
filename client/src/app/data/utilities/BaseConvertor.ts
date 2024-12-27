@@ -14,11 +14,13 @@ const readFileAsBase64 = (file: File): Promise<string> => {
   });
 };
 
-export const convertFilesToBase64 = async (files: File[]): Promise<MessageFile[]> => {
+export const convertFilesToBase64 = async (
+  files: File[],
+): Promise<MessageFile[]> => {
   try {
     const filePromises = files.map(async (file) => {
       const base64Data = await readFileAsBase64(file);
-      return <MessageFile> { name: file.name, data: base64Data };
+      return <MessageFile>{ name: file.name, data: base64Data };
     });
 
     return await Promise.all(filePromises);

@@ -1,14 +1,14 @@
 import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
-import { LoginComponent } from './pages/login/login.component';
-import { ChatComponent } from './components/chat/chat.component';
+import { LoginComponent } from './auth/login/login.component';
+import { ChatSidebarItemComponent } from './components/chat-sidebar-item/chat-sidebar-item.component';
 import { canActivateAuth } from './auth/access.guard';
 
 const routes: Routes = [
   { path: 'auth/login', component: LoginComponent },
   {
     path: 'chat',
-    component: ChatComponent,
+    component: ChatSidebarItemComponent,
     canActivate: [canActivateAuth],
   },
   { path: '**', redirectTo: 'auth/login' },

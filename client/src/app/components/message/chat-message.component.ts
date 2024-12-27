@@ -1,45 +1,47 @@
 import {
   Component,
   ComponentRef,
-  inject,
   Input,
   ViewChild,
   ViewContainerRef,
 } from '@angular/core';
 import { WebSocketService } from '../../data/services/web-socket.service';
 import { FileService } from '../../data/services/file.service';
-import { ContextMenuComponent } from '../context-menu/context-menu.component';
+import { MessageContextMenuComponent } from '../message-context-menu/message-context-menu.component';
 import { FormsModule } from '@angular/forms';
 import { Message, MessageFile } from '../../data/interfaces/message.interface';
+import { DatePipe } from '@angular/common';
 
 @Component({
-  selector: 'app-message',
-  templateUrl: './message.component.html',
-  styleUrls: ['./message.component.scss'],
+  selector: 'message',
+  templateUrl: './chat-message.component.html',
+  styleUrls: ['./chat-message.component.scss'],
   standalone: true,
-  imports: [FormsModule],
+  imports: [FormsModule, DatePipe],
 })
-export class MessageComponent {
+export class ChatMessageComponent {
   @Input() message!: Message;
   @Input() user!: number;
   @ViewChild('menuContainer', { read: ViewContainerRef })
   menuContainer!: ViewContainerRef;
-
-  fileService = inject(FileService);
-
-  private static activeMenuRef: ComponentRef<ContextMenuComponent> | null =
+  private static activeMenuRef: ComponentRef<MessageContextMenuComponent> | null =
     null;
   isEditing: boolean = false;
   updatedText: string = '';
 
-  constructor(public webSocketService: WebSocketService) {}
+  constructor(
+    public webSocketService: WebSocketService,
+    private fileService: FileService,
+  ) {}
 
-  public openContextMenu(event: MouseEvent ) {
+  public openContextMenu(event: MouseEvent) {
     event.preventDefault();
     if (this.message.from === this.user) {
       this.destroyActiveMenu();
-      const menuRef = this.menuContainer.createComponent(ContextMenuComponent);
-      MessageComponent.activeMenuRef = menuRef;
+      const menuRef = this.menuContainer.createComponent(
+        MessageContextMenuComponent,
+      );
+      ChatMessageComponent.activeMenuRef = menuRef;
 
       menuRef.instance.action.subscribe((action: string) => {
         this.handleContextMenuAction(action);
@@ -82,9 +84,9 @@ export class MessageComponent {
   }
 
   private destroyActiveMenu() {
-    if (MessageComponent.activeMenuRef) {
-      MessageComponent.activeMenuRef.destroy();
-      MessageComponent.activeMenuRef = null;
+    if (ChatMessageComponent.activeMenuRef) {
+      ChatMessageComponent.activeMenuRef.destroy();
+      ChatMessageComponent.activeMenuRef = null;
     }
   }
 

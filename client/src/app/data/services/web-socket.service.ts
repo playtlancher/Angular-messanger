@@ -1,7 +1,6 @@
 import { Injectable } from '@angular/core';
 import { Message } from '../interfaces/message.interface';
-import {environment} from '../../../environments/environment';
-
+import { environment } from '../../../environments/environment';
 
 @Injectable({
   providedIn: 'root',
@@ -41,7 +40,10 @@ export class WebSocketService {
       else if (type === 'Update') this.updateMessageDate(payload.message);
       else console.warn(`Unhandled WebSocket event type: ${type}`);
     } catch (error) {
-      console.error('Error parsing WebSocket message:', error);
+      console.error(
+        'Error parsing WebSocket chat-sidebar-item-message:',
+        error,
+      );
     }
   }
 
@@ -50,7 +52,6 @@ export class WebSocketService {
   }
 
   private formatAndAddMessage(message: Message): void {
-    message.date = this.formatDate(message.date!);
     this.messages.push(message);
   }
 
@@ -64,18 +65,8 @@ export class WebSocketService {
       (entry) => entry.id === updatedMessage.id,
     );
     if (index !== -1) {
-      updatedMessage.date = this.formatDate(updatedMessage.date!);
       this.messages[index] = updatedMessage;
     }
-  }
-
-  private formatDate(date: string): string {
-    return new Date(date).toLocaleString([], {
-      month: '2-digit',
-      day: '2-digit',
-      hour: '2-digit',
-      minute: '2-digit',
-    });
   }
 
   public sendMessage(message: Message): void {

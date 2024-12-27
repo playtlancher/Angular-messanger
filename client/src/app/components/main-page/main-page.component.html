@@ -1,5 +1,5 @@
 <div class="flex h-screen">
-  <div id="side-panel" class="scrollbar-hide w-1/4 bg-gray-800 flex flex-col">
+  <div id="side-panel" class="w-1/4 bg-gray-800 flex flex-col">
     <div
       class="flex justify-between items-center p-5 border-b border-gray-700"
     >
@@ -9,9 +9,11 @@
         +
       </a>
     </div>
+    <div class="p-2 scrollable scrollbar-hide">
       @for (chat of chats; track chat.id) {
-        <app-chat [chat]="chat"></app-chat>
+        <chat-sidebar-item [chat]="chat"></chat-sidebar-item>
       }
+    </div>
   </div>
 
   <div class="w-3/4 flex flex-col">

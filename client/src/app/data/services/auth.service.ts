@@ -1,21 +1,18 @@
-import { inject, Injectable } from '@angular/core';
+import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { catchError, tap, throwError } from 'rxjs';
-import { TokenResponse, DecodedToken } from '../interfaces/auth.interface';
-import {environment} from '../../../environments/environment';
-
-
+import { DecodedToken, TokenResponse } from '../interfaces/auth.interface';
+import { environment } from '../../../environments/environment';
 
 @Injectable({
   providedIn: 'root',
 })
 export class AuthService {
-  private http = inject(HttpClient);
   private readonly base_url = environment['BASE_URL'];
   private accessToken: string = '';
   private refreshToken: string = '';
 
-  constructor() {
+  constructor(private http: HttpClient) {
     const storedToken = localStorage.getItem('token');
     const storedRefreshToken = localStorage.getItem('refreshToken');
     if (storedToken) this.accessToken = storedToken;
@@ -38,7 +35,7 @@ export class AuthService {
         { withCredentials: true },
       )
       .pipe(
-        tap((res) => this.storeTokens(res.access_token, res.refresh_token)),
+        tap((res) => this.storeTokens(res.accessToken, res.refreshToken)),
         catchError((error) => {
           console.error('Login failed:', error);
           return throwError(() => error);
@@ -63,7 +60,7 @@ export class AuthService {
       )
       .pipe(
         tap((res) => {
-          this.storeTokens(res.access_token, res.refresh_token);
+          this.storeTokens(res.accessToken, res.refreshToken);
         }),
         catchError((error) => {
           console.error('Failed to refresh token:', error);

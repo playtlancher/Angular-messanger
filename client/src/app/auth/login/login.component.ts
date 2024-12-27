@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { Component } from '@angular/core';
 import {
   FormControl,
   FormGroup,
@@ -16,12 +16,12 @@ import { AuthService } from '../../data/services/auth.service';
   imports: [ReactiveFormsModule, RouterLink],
 })
 export class LoginComponent {
-  private authService = inject(AuthService);
-  private router = inject(Router);
-
   loginForm: FormGroup;
 
-  constructor() {
+  constructor(
+    private authService: AuthService,
+    private router: Router,
+  ) {
     this.loginForm = new FormGroup({
       username: new FormControl<string | null>(null, Validators.required),
       password: new FormControl<string | null>(null, Validators.required),

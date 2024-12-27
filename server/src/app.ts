@@ -22,7 +22,6 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(cookieParser());
 
-// Middleware
 app.use(checkAccessToken);
 
 app.use(
@@ -31,9 +30,9 @@ app.use(
     resave: false,
     saveUninitialized: false,
     cookie: {
-      secure: false,
+      secure: process.env.NODE_ENV === "production",
       httpOnly: true,
-      maxAge: 1000 * 60 * 60,
+      maxAge: 1000 * 60 * 60 * 24 * 7,
     },
   }),
 );
@@ -45,7 +44,6 @@ const corsOptions = {
   credentials: true,
 };
 app.use(cors(corsOptions));
-
 app.options("*", cors(corsOptions));
 
 app.use(express.static("public"));

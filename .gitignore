@@ -6,7 +6,10 @@
 
 # IDEs and editors
 .idea/
+.dist
 
+#js files
+*.js
 
 # Visual Studio Code
 .vscode/*

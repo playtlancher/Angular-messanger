@@ -1,18 +1,17 @@
-import {inject, Injectable} from '@angular/core';
-import {HttpClient} from '@angular/common/http';
-import {environment} from '../../../environments/environment';
-import {User} from '../interfaces/user.interface';
-import {map, Observable} from 'rxjs';
+import { inject, Injectable } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { environment } from '../../../environments/environment';
+import { User } from '../interfaces/user.interface';
+import { map, Observable } from 'rxjs';
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class UserService {
   http = inject(HttpClient);
   base_url = environment['BASE_URL'];
 
-  constructor() { }
-
+  constructor() {}
 
   getUsers(): Observable<{ id: number; username: string }[]> {
     return this.http
@@ -21,9 +20,9 @@ export class UserService {
         map((users) =>
           users.map((user) => ({
             id: user.id,
-            username: user.username
-          }))
-        )
+            username: user.username,
+          })),
+        ),
       );
   }
 }

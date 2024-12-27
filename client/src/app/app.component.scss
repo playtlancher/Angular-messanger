@@ -1,15 +1,18 @@
-.d-flex{
-  display: flex !important;
-}
-.pos-absolute{
-  position: absolute !important;
-}
-.pos-relative{
-  position: absolute !important;
-}
-.pos-fixed{
-  position: fixed !important;
-}
-.pos-sticky{
+.p-sticky {
   position: sticky !important;
+}
+.p-relative{
+  position: relative !important;
+}
+
+.t-0 {
+  top: 0 !important;
+}
+
+.width-100{
+  width: 100% !important;
+}
+
+.height-100vh{
+  height: 100vh !important;
 }

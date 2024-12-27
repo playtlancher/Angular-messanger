@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { Component } from '@angular/core';
 import {
   FormControl,
   FormGroup,
@@ -8,29 +8,30 @@ import {
 } from '@angular/forms';
 import { ChatService } from '../../data/services/chat.service';
 import { UserService } from '../../data/services/user.service';
-import {User} from '../../data/interfaces/user.interface';
+import { User } from '../../data/interfaces/user.interface';
 
 @Component({
-  selector: 'app-chat-add',
+  selector: 'app-chat-sidebar-item-add-form',
   imports: [FormsModule, ReactiveFormsModule],
-  templateUrl: './chat-add.component.html',
+  templateUrl: './chat-add-form.component.html',
   standalone: true,
-  styleUrl: './chat-add.component.scss',
+  styleUrl: './chat-add-form.component.scss',
 })
-export class ChatAddComponent {
+export class ChatAddFormComponent {
   users: User[] = [];
   chatForm: FormGroup;
-  chatService = inject(ChatService);
-  userService = inject(UserService);
 
-  constructor() {
+  constructor(
+    private chatService: ChatService,
+    private userService: UserService,
+  ) {
     this.chatForm = new FormGroup({
       chatName: new FormControl<string | null>(null, Validators.required),
       username: new FormControl<string | null>(null, Validators.required),
     });
-    this.userService.getUsers().subscribe((users)=>{
+    this.userService.getUsers().subscribe((users) => {
       this.users = users;
-    })
+    });
   }
 
   addChat() {

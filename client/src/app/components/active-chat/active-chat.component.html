@@ -1,5 +1,5 @@
-<div #chatMessage style="position: relative; height: 100vh; max-height: 100vh;">
-  <div style="position: sticky; top: 0; z-index: 10" class="flex items-center justify-between bg-indigo-600 p-4 shadow-lg">
+<div style="position: relative; height: 100vh;">
+  <div style="z-index: 10" class="p-sticky t-0 flex items-center justify-between bg-indigo-600 p-4 shadow-lg">
     <div class="flex items-center">
       <div class="w-12 h-12 bg-blue-500 rounded-full mr-4"></div>
       <div>
@@ -11,18 +11,16 @@
     </div>
   </div>
 
-  <div id="chatMessages" class="pt-10 px-6 pb-6 space-y-4 overflow-y-auto flex-1 max-h-[calc(100vh-165px)]">
+  <div #MessageContainer class="pt-10 px-6 pb-6 space-y-4 scrollable scrollbar-hide flex-1 max-h-[calc(100vh-165px)]">
     @for (message of webSocketService.messages; track message.id) {
-      <app-message [user]="userId" [message]="message"></app-message>
+      <message [user]="userId" [message]="message"></message>
     }
-    <div #messageEnd></div>
-    {{scrollToBottom()}}
   </div>
 
   <div style="position: absolute; bottom: 0; left: 0; right: 0; width: 100%;" class="flex flex-col bg-gray-800 p-4 border-t border-gray-700">
-    <div #FileContainer class="mb-2 flex flex-wrap gap-2">
+    <div class="mb-2 flex flex-wrap gap-2">
       @for (file of this.files; track file.name) {
-        <app-file [file]="file" (action)="deleteFile(file)"></app-file>
+        <uploading-file [file]="file" (action)="deleteFile(file)"></uploading-file>
       }
     </div>
 

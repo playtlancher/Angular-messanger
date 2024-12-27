@@ -6,7 +6,7 @@ export default class ChatRepository {
     try {
       return await Chat.create({ name });
     } catch (error) {
-      console.error("Error creating chat:", error);
+      console.error("Error creating chat-sidebar-item:", error);
       throw error;
     }
   }

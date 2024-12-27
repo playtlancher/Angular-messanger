@@ -1,31 +1,32 @@
-import {inject, Injectable} from '@angular/core';
+import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Chat } from '../interfaces/chat.interface';
 import { environment } from '../../../environments/environment';
-import {catchError, Observable, tap} from 'rxjs';
+import { catchError, Observable, tap } from 'rxjs';
 
 @Injectable({
   providedIn: 'root',
 })
 export class ChatService {
-  http = inject(HttpClient);
   base_url = environment['BASE_URL'];
   chats: Chat[] = [];
 
-  constructor() {
+  constructor(private http: HttpClient) {
     this.getChats();
   }
 
   getChats(): Observable<Chat[]> {
-    return this.http.get<Chat[]>(`${this.base_url}/chats`, { withCredentials: true }).pipe(
-      tap((chats) => {
-        this.chats = chats;
-      }),
-      catchError((error) => {
-        console.error('Error fetching chats:', error);
-        return [];
-      }),
-    );
+    return this.http
+      .get<Chat[]>(`${this.base_url}/chats`, { withCredentials: true })
+      .pipe(
+        tap((chats) => {
+          this.chats = chats;
+        }),
+        catchError((error) => {
+          console.error('Error fetching chats:', error);
+          return [];
+        }),
+      );
   }
 
   getChatById(chatId: number): Chat {
@@ -47,7 +48,7 @@ export class ChatService {
           console.log('Chat added successfully:', response);
         },
         error: (err) => {
-          console.error('Error adding chat:', err);
+          console.error('Error adding chat-sidebar-item:', err);
         },
       });
   }
