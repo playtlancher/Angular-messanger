@@ -1,12 +1,15 @@
 import { NextFunction, Request, Response } from "express";
 import jwt from "jsonwebtoken";
 
-const allowedEndpoints = ["/login", "/registration", "/refresh_token"];
+const allowedEndpoints = ["/login", "/registration", "/refresh-access-token"];
 
-export function checkAccessToken(req: Request, res: Response, next: NextFunction) {
+export function checkAccessToken(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) {
   if (allowedEndpoints.includes(req.path) || req.method === "OPTIONS") {
-    next();
-    return;
+    return next();
   }
 
   const token = req.cookies.accessToken;
@@ -17,7 +20,9 @@ export function checkAccessToken(req: Request, res: Response, next: NextFunction
 
   const secret = process.env.ACCESS_TOKEN_SECRET;
   if (!secret) {
-    console.error("ACCESS_TOKEN_SECRET is not defined in the environment variables.");
+    console.error(
+      "ACCESS_TOKEN_SECRET is not defined in the environment variables.",
+    );
     res.status(500).send("Internal server error.");
   }
 

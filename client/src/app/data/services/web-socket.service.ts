@@ -1,17 +1,22 @@
 import { Injectable } from '@angular/core';
 import { Message } from '../interfaces/message.interface';
 import { environment } from '../../../environments/environment';
+import { AuthService } from './auth.service';
+import { Chat } from '../interfaces/chat.interface';
 
 @Injectable({
   providedIn: 'root',
 })
 export class WebSocketService {
+  constructor(private readonly authService: AuthService) {}
   private webSocket?: WebSocket;
   public messages: Message[] = [];
   private base_url = environment['BASE_WS_URL'];
+  private chatId: number = -1;
 
   public openWebSocket(chatId: number): void {
     this.closeWebSocket();
+    this.chatId = chatId;
     this.messages = [];
     this.webSocket = new WebSocket(`${this.base_url}/${chatId}`);
     this.attachWebSocketEvents();
@@ -34,11 +39,28 @@ export class WebSocketService {
 
   private handleMessage(event: MessageEvent): void {
     try {
-      const { type, payload } = JSON.parse(event.data);
-      if (type === 'Post') this.addMessages(payload.messages);
-      else if (type === 'Delete') this.removeMessage(payload.message);
-      else if (type === 'Update') this.updateMessageDate(payload.message);
-      else console.warn(`Unhandled WebSocket event type: ${type}`);
+      const { type, error, payload } = JSON.parse(event.data);
+      switch (type) {
+        case 'Post': {
+          this.addMessages(payload.messages);
+          break;
+        }
+        case 'Delete': {
+          this.removeMessage(payload.messages);
+          break;
+        }
+        case 'Update': {
+          this.updateMessageDate(payload.messages);
+          break;
+        }
+        case 'Error': {
+          this.handleError(error);
+          break;
+        }
+        default: {
+          console.warn(`Unhandled WebSocket event type: ${type}`);
+        }
+      }
     } catch (error) {
       console.error(
         'Error parsing WebSocket chat-sidebar-item-message:',
@@ -46,7 +68,19 @@ export class WebSocketService {
       );
     }
   }
-
+  private handleError(error: string): void {
+    console.error(error);
+    if (error === 'Invalid token') {
+      this.authService.refreshAccessToken().subscribe({
+        next: () => {
+          this.openWebSocket(this.chatId);
+        },
+        error: (refreshError) => {
+          console.error('Failed to refresh token:', refreshError);
+        },
+      });
+    }
+  }
   private addMessages(newMessages: Message[]): void {
     newMessages.forEach(this.formatAndAddMessage.bind(this));
   }

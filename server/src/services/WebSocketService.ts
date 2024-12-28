@@ -1,4 +1,4 @@
-import jwt from "jsonwebtoken";
+import jwt, { JwtPayload } from "jsonwebtoken";
 import FileRepository from "../repositories/FileRepository";
 import { WebSocket, WebSocketServer } from "ws";
 import * as uuid from "uuid";
@@ -12,205 +12,251 @@ import UserRepository from "../repositories/UserRepository";
 import ChatUserRepository from "../repositories/ChatUserRepository";
 import ChatService from "./ChatService";
 import DecodeJWT from "../utilities/DecodeJWT";
+import DecodedToken from "../interfaces/DecodedToken";
+
+type MessageType = "Post" | "Delete" | "Update";
+
+interface ChatMessage {
+  id: number;
+  text: string;
+  date: Date;
+  from: number;
+  chat: number;
+  files: UploadedFile[];
+}
+
+interface UploadedFile {
+  id: string;
+  name: string;
+  data: string;
+}
+
+interface WebSocketEvent {
+  type: MessageType;
+  payload: any;
+}
 
 const clients: Map<string, WebSocket> = new Map();
 const fileRepository = new FileRepository();
-
-let wss: WebSocketServer;
 const messageRepository = new MessageRepository();
 const chatService = new ChatService();
 const userRepository = new UserRepository();
 const chatUserRepository = new ChatUserRepository();
 
-const initWebSocketServer = (server: any): WebSocketServer => {
-  wss = new WebSocketServer({ server });
+export default class WebSocketService {
+  private wss: WebSocketServer | undefined;
 
-  wss.on("connection", async (ws: WebSocket, req: any) => {
-    const id = uuid.v4();
-    clients.set(id, ws);
+  initWebSocketServer(server: any): WebSocketServer {
+    this.wss = new WebSocketServer({ server });
 
-    const chatId = parseInt(req.url.slice(1));
-    if (chatId) {
-      try {
-        console.log(`New client connected: ${id}`);
-        console.log(req.headers.cookie);
-        const token = getCookieValue(req.headers.cookie, "accessToken");
-        if (!token) {
-          ws.send(
-            JSON.stringify({
-              error: "Authentication token is missing or invalid.",
-            }),
-          );
-          console.log(token);
+    this.wss.on("connection", (ws: WebSocket, req: any) => {
+      const id = uuid.v4();
+      clients.set(id, ws);
 
-          return;
-        }
-        const decodedToken = DecodeJWT(token);
-        if (!decodedToken) {
-          ws.send(
-            JSON.stringify({
-              error: "Authentication token is missing or invalid.",
-            }),
-          );
-          console.log(decodedToken);
-          return;
-        }
-        const result = await chatService.getChatMessages(chatId, decodedToken);
-        if (result.status !== 200) {
-          return;
-        }
-        const messages = result.payload as [];
-        messages.sort((a: any, b: any) => a.date - b.date);
-
-        const messageFile = await Promise.all(
-          messages.map(async (message: Message) => {
-            return {
-              id: message.id,
-              text: message.text,
-              date: message.date,
-              from: message.from,
-              chat: message.chat,
-              files: await fileRepository.findAllBy({ message_id: message.id }),
-            };
-          }),
-        );
-        const event = { type: "Post", payload: { messages: messageFile } };
-        if (ws.readyState === WebSocket.OPEN) {
-          ws.send(JSON.stringify(event));
-        }
-        ws.on("message", async (message: string) => await onMessage(message));
-        ws.on("close", () => {
-          clients.delete(id);
-          console.log(`Client disconnected: ${id}`);
-        });
-      } catch (error) {
-        console.error(`Error handling WebSocket connection for chat ${chatId}:`, error);
-        ws.send(JSON.stringify({ error: "Failed to load messages" }));
+      const chatId = this.parseChatId(req.url);
+      if (chatId === null) {
+        ws.send(JSON.stringify({ error: "Invalid chat ID" }));
+        ws.close();
+        return;
       }
-    } else {
-      ws.send(JSON.stringify({ error: "Invalid chat-sidebar-item ID" }));
+
+      this.handleConnection(ws, req.headers.cookie, chatId, id);
+    });
+
+    return this.wss;
+  }
+
+  private parseChatId(url: string): number | null {
+    const chatId = parseInt(url.slice(1));
+    return isNaN(chatId) ? null : chatId;
+  }
+
+  private async handleConnection(
+    ws: WebSocket,
+    cookie: string | undefined,
+    chatId: number,
+    clientId: string,
+  ): Promise<void> {
+    try {
+      const token = this.getCookieValue(cookie, "accessToken");
+      if (!token) {
+        ws.send(JSON.stringify({ type: "Error", error: "Invalid token" }));
+        throw new Error("Authentication token is missing or invalid.");
+      }
+
+      const decodedToken = DecodeJWT(token);
+      if (!decodedToken) throw new Error("Invalid token.");
+
+      const messages = await this.loadMessages(chatId, decodedToken);
+      ws.send(JSON.stringify({ type: "Post", payload: { messages } }));
+
+      ws.on("message", (message: string) => this.onMessage(message));
+      ws.on("close", () => this.handleDisconnection(clientId));
+    } catch (e) {
+      const error = e as Error;
+      console.error(`Error during connection for chat ${chatId}:`, error);
+      ws.send(JSON.stringify({ error: error.message }));
       ws.close();
     }
-  });
+  }
 
-  return wss;
-};
+  private async loadMessages(chatId: number, decodedToken: DecodedToken) {
+    const rawMessages = await chatService.getChatMessages(chatId, decodedToken);
 
-async function onMessage(data: string): Promise<void> {
-  const { type, message, token } = JSON.parse(data);
-  const { id, text, chat, from, files } = message;
+    return Promise.all(
+      rawMessages.map(async (message: Message) => ({
+        id: message.id,
+        text: message.text,
+        date: message.date,
+        from: message.from,
+        chat: message.chat,
+        files: await fileRepository.findAllBy({ message_id: message.id }),
+      })),
+    );
+  }
 
-  try {
-    const user = await validateUser(token);
-    const __filename = fileURLToPath(import.meta.url);
-    const __dirname = dirname(dirname(__filename));
-    const uploadsDir = path.join(__dirname, "uploads");
-    if ((await isUserInChat(user.id, chat)) && user.id === from) {
-      let event = { type, payload: {} };
-      if (type === "Post") {
-        const newMessage = await messageRepository.createMessage(text, user.id, chat);
+  private async onMessage(data: string): Promise<void> {
+    const {
+      type,
+      message,
+      token,
+    }: { type: MessageType; message: ChatMessage; token: string } =
+      JSON.parse(data);
 
-        let attachedFiles: Array<{ id: string; name: string }> = [];
+    try {
+      const user = await this.validateUser(token);
+      if (!user || !(await this.isUserInChat(user.id, message.chat))) return;
 
-        if (files && files.length > 0) {
-          for (let file of files) {
-            if (typeof file.data !== "string") {
-              throw new Error(`Invalid file data format for ${file.name}`);
-            }
+      const event = await this.handleMessageType(type, message, user.id);
+      this.broadcast(event);
+    } catch (error) {
+      console.error("Error handling message:", error);
+    }
+  }
 
-            const cleanBase64 = file.data.trim();
-            const fileData = Buffer.from(cleanBase64, "base64");
-            const fileUUID = uuid.v4();
-            const filePath = path.join(uploadsDir, fileUUID);
+  private async handleMessageType(
+    type: MessageType,
+    message: ChatMessage,
+    userId: number,
+  ): Promise<WebSocketEvent> {
+    switch (type) {
+      case "Post":
+        return this.handlePostMessage(message, userId);
+      case "Delete":
+        return this.handleDeleteMessage(message);
+      case "Update":
+        return this.handleUpdateMessage(message);
+      default:
+        throw new Error("Unknown message type");
+    }
+  }
 
-            const createdFile = await fileRepository.createFile(fileUUID, newMessage!.id, file.name);
+  private async handlePostMessage(
+    message: ChatMessage,
+    userId: number,
+  ): Promise<WebSocketEvent> {
+    const newMessage = await messageRepository.createMessage(
+      message.text,
+      userId,
+      message.chat,
+    );
+    const files = await this.saveFiles(message.files, newMessage!.id);
 
-            attachedFiles.push({
-              id: createdFile!.id,
-              name: file.name,
-            });
+    return {
+      type: "Post",
+      payload: {
+        messages: [
+          {
+            ...newMessage,
+            files,
+          },
+        ],
+      },
+    };
+  }
 
-            if (!fs.existsSync(uploadsDir)) {
-              fs.mkdirSync(uploadsDir, { recursive: true });
-            }
-            await fs.promises.writeFile(filePath, fileData);
-          }
-        }
+  private async saveFiles(files: UploadedFile[], messageId: number) {
+    const uploadsDir = this.getUploadsDir();
+    for (let file of files) {
+      const fileUUID = uuid.v4();
+      const filePath = path.join(uploadsDir, fileUUID);
+      const fileData = Buffer.from(file.data.trim(), "base64");
 
-        event.type = "Post";
-        event.payload = {
-          messages: [
-            {
-              id: newMessage!.id,
-              text: newMessage!.text,
-              date: newMessage!.date,
-              from: newMessage!.from,
-              chat: newMessage!.chat,
-              files: attachedFiles,
-            },
-          ],
-        };
-      }
-      if (type === "Delete") {
-        if (from === user.id) {
-          const filesToDelete = await fileRepository.findAllBy({
-            message_id: id,
-          });
-          filesToDelete.forEach(async (file: any) => {
-            const filePath = path.join(__dirname, "uploads", file.id);
-            try {
-              fs.unlink(filePath, (err) => {
-                if (err) {
-                  console.error(`Error deleting file ${filePath}:`, err);
-                } else {
-                  console.log(`File ${filePath} deleted successfully.`);
-                }
-              });
-            } catch (error) {
-              console.error(`Error finding file ${filePath}:`, error);
-            }
-          });
-          await messageRepository.deleteMessage(id);
-          const messageToDelete = { id, text, chat, from };
-
-          event.type = "Delete";
-          event.payload = { message: messageToDelete };
-        }
-      }
-
-      if (type === "Update") {
-        if (from === user.id) {
-          const updatedMessage = await messageRepository.updateMessage(id, text);
-          event.type = "Update";
-          event.payload = { message: updatedMessage };
-        }
+      if (!fs.existsSync(uploadsDir)) {
+        fs.mkdirSync(uploadsDir, { recursive: true });
       }
 
-      wss.clients.forEach((client: WebSocket) => {
+      await fs.promises.writeFile(filePath, fileData);
+      await fileRepository.createFile(fileUUID, messageId, file.name);
+    }
+  }
+
+  private handleDeleteMessage(message: ChatMessage): WebSocketEvent {
+    fileRepository
+      .findAllBy({ message_id: message.id })
+      .then((files) =>
+        files.forEach((file) =>
+          fs.unlinkSync(path.join(this.getUploadsDir(), file.id)),
+        ),
+      )
+      .catch(console.error);
+
+    messageRepository.deleteMessage(message.id);
+
+    return { type: "Delete", payload: { message } };
+  }
+
+  private async handleUpdateMessage(
+    message: ChatMessage,
+  ): Promise<WebSocketEvent> {
+    const updatedMessage = await messageRepository.updateMessage(
+      message.id,
+      message.text,
+    );
+    return { type: "Update", payload: { message: updatedMessage } };
+  }
+
+  private broadcast(event: WebSocketEvent): void {
+    if (this.wss) {
+      this.wss.clients.forEach((client) => {
         if (client.readyState === WebSocket.OPEN) {
           client.send(JSON.stringify(event));
         }
       });
     }
-  } catch (error) {
-    console.error("Error handling chat-sidebar-item-message:", error);
+  }
+
+  private async validateUser(token: string): Promise<any> {
+    const decoded: JwtPayload = jwt.verify(
+      token,
+      process.env.ACCESS_TOKEN_SECRET as string,
+    ) as JwtPayload;
+    return userRepository.findOneBy({ id: decoded.id });
+  }
+
+  private async isUserInChat(userId: number, chatId: number): Promise<boolean> {
+    return chatUserRepository.checkUserChatConnection(userId, chatId);
+  }
+
+  private getCookieValue(
+    cookieString: string | undefined,
+    key: string,
+  ): string | undefined {
+    if (!cookieString) return undefined;
+    const cookies = Object.fromEntries(
+      cookieString.split("; ").map((cookie) => cookie.split("=")),
+    );
+    return cookies[key];
+  }
+
+  private getUploadsDir(): string {
+    const __filename = fileURLToPath(import.meta.url);
+    const __dirname = dirname(dirname(__filename));
+    return path.join(__dirname, "uploads");
+  }
+
+  private handleDisconnection(clientId: string): void {
+    clients.delete(clientId);
+    console.log(`Client disconnected: ${clientId}`);
   }
 }
-
-async function validateUser(token: string): Promise<any | null> {
-  const decoded: any = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET as string);
-  const id = decoded.id;
-  return await userRepository.findOneBy({ id });
-}
-
-async function isUserInChat(userId: number, chatId: number): Promise<boolean> {
-  if (chatId && userId) {
-    return await chatUserRepository.checkUserChatConnection(userId, chatId);
-  }
-  return false;
-}
-function getCookieValue(cookieString: string, key: string) {
-  const cookies = cookieString ? Object.fromEntries(cookieString.split("; ").map((cookie) => cookie.split("="))) : {};
-  return cookies[key];
-}
-export { initWebSocketServer };

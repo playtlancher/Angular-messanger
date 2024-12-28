@@ -11,9 +11,7 @@ export class ChatService {
   base_url = environment['BASE_URL'];
   chats: Chat[] = [];
 
-  constructor(private http: HttpClient) {
-    this.getChats();
-  }
+  constructor(private http: HttpClient) {}
 
   getChats(): Observable<Chat[]> {
     return this.http
@@ -23,8 +21,8 @@ export class ChatService {
           this.chats = chats;
         }),
         catchError((error) => {
-          console.error('Error fetching chats:', error);
-          return [];
+          console.error('Error fetching chats', error.status);
+          throw error;
         }),
       );
   }
@@ -33,7 +31,7 @@ export class ChatService {
     return <Chat>this.chats.find((chat) => chat.id === chatId);
   }
 
-  addChat(chatName: string, username: string) {
+  addChat(chatName: string, username: string): void {
     this.http
       .post<{
         username: string;
@@ -48,7 +46,7 @@ export class ChatService {
           console.log('Chat added successfully:', response);
         },
         error: (err) => {
-          console.error('Error adding chat-sidebar-item:', err);
+          console.error('Error adding chat:', err);
         },
       });
   }

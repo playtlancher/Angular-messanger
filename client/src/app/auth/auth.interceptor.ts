@@ -5,14 +5,13 @@ import { AuthService } from '../data/services/auth.service';
 
 export const authTokenInterceptor: HttpInterceptorFn = (req, next) => {
   const authService = inject(AuthService);
-
   return next(req).pipe(
     catchError((error) => {
-      if (error.status === 401) {
+      if (error.status === 401 || error.status === 0) {
         return refresh(authService).pipe(
           switchMap(() => next(req)),
           catchError((refreshError) => {
-            console.error('Failed to refresh token:', refreshError);
+            console.error('Failed to refresh token');
             return throwError(() => refreshError);
           }),
         );

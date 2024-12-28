@@ -4,16 +4,17 @@ import session from "express-session";
 import bodyParser from "body-parser";
 import cookieParser from "cookie-parser";
 import cors from "cors";
-import { initWebSocketServer } from "./services/WebSocketService";
+import WebSocketService from "./services/WebSocketService";
 import { attachControllers } from "@decorators/express";
 import { init } from "./config/DB";
-import UserController from "./controllers/UserController";
+import AuthController from "./controllers/AuthController";
 import ChatController from "./controllers/ChatController";
 import { checkAccessToken } from "./middlewares/AuthMiddleware";
 
 dotenv.config();
 
 const app = express();
+const webSocketService = new WebSocketService();
 
 init();
 
@@ -48,14 +49,14 @@ app.options("*", cors(corsOptions));
 
 app.use(express.static("public"));
 
-await attachControllers(app, [UserController, ChatController]);
+await attachControllers(app, [AuthController, ChatController]);
 
 const PORT: number = parseInt(process.env.PORT || "8000", 10);
 const server = app.listen(PORT, () => {
   console.log(`🚀 Server running at http://localhost:${PORT}/`);
 });
 
-const wss = initWebSocketServer(server);
+const wss = webSocketService.initWebSocketServer(server);
 
 process.on("SIGINT", () => {
   console.log("\nShutting down server...");

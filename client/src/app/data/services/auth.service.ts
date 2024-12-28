@@ -3,6 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import { catchError, tap, throwError } from 'rxjs';
 import { DecodedToken, TokenResponse } from '../interfaces/auth.interface';
 import { environment } from '../../../environments/environment';
+import { Router } from '@angular/router';
 
 @Injectable({
   providedIn: 'root',
@@ -12,7 +13,10 @@ export class AuthService {
   private accessToken: string = '';
   private refreshToken: string = '';
 
-  constructor(private http: HttpClient) {
+  constructor(
+    private http: HttpClient,
+    private router: Router,
+  ) {
     const storedToken = localStorage.getItem('token');
     const storedRefreshToken = localStorage.getItem('refreshToken');
     if (storedToken) this.accessToken = storedToken;
@@ -44,15 +48,13 @@ export class AuthService {
   }
 
   refreshAccessToken() {
-    localStorage.removeItem('token');
-    localStorage.removeItem('refreshToken');
     if (!this.refreshToken) {
       return throwError(() => new Error('No refresh token available'));
     }
-
+    this.clearTokens();
     return this.http
       .post<TokenResponse>(
-        `${this.base_url}/refresh-token`,
+        `${this.base_url}/refresh-access-token`,
         {},
         {
           withCredentials: true,
@@ -63,7 +65,7 @@ export class AuthService {
           this.storeTokens(res.accessToken, res.refreshToken);
         }),
         catchError((error) => {
-          console.error('Failed to refresh token:', error);
+          this.router.navigate(['/login']);
           return throwError(() => error);
         }),
       );
@@ -84,8 +86,7 @@ export class AuthService {
   }
 
   getDecodedToken(): DecodedToken {
-    const token = this.accessToken;
-    return this.decodeJWT(token);
+    return this.decodeJWT(this.accessToken);
   }
 
   private decodeJWT(token: string): DecodedToken {

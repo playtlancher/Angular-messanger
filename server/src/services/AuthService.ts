@@ -5,44 +5,42 @@ import dotenv from "dotenv";
 
 dotenv.config();
 
-export interface AuthResponse {
-  status: number;
-  message: string;
-  accessToken?: string;
-  refreshToken?: string;
+interface Tokens {
+  accessToken: string;
+  refreshToken: string;
 }
 
-export default class UserService {
+export default class AuthService {
   private userRepository = new UserRepository();
 
-  register = async (username: string, password: string): Promise<AuthResponse> => {
+  async register(username: string, password: string) {
     const isUserExist = await this.userRepository.findAllBy({ username });
     if (isUserExist.length > 0) {
-      return { status: 400, message: "User with this username already exists" };
+      throw new Error("User with this username already exists");
     }
     await this.userRepository.createUser(username, password);
-    return { status: 200, message: "Successfully registered" };
-  };
+  }
 
-  login = async (username: string, password: string): Promise<AuthResponse> => {
+  async login(username: string, password: string): Promise<Tokens> {
     const user = await this.userRepository.findOneBy({ username });
 
     if (!user || !(await bcrypt.compare(password, user.password))) {
-      return { status: 401, message: "Incorrect username or password" };
+      throw Error("Incorrect username or password");
     }
     const { accessToken, refreshToken } = this.createTokens({
       id: user.id,
       username: user.username,
     });
     return {
-      status: 200,
-      message: "Login successful",
       accessToken,
       refreshToken,
     };
-  };
+  }
 
-  refreshAccessToken = async (oldRefreshToken: string): Promise<AuthResponse> => {
+  async refreshAccessToken(oldRefreshToken: string): Promise<Tokens> {
+    if (!oldRefreshToken) {
+      throw new Error("Refresh token is missing");
+    }
     const decoded = jwt.verify(oldRefreshToken, process.env.REFRESH_TOKEN_SECRET!) as JwtPayload;
 
     const { accessToken, refreshToken } = this.createTokens({
@@ -50,14 +48,12 @@ export default class UserService {
       username: decoded.username,
     });
     return {
-      status: 200,
-      message: "Login successful",
       accessToken,
       refreshToken,
     };
-  };
+  }
 
-  createTokens = (payload: object) => {
+  createTokens(payload: object): Tokens {
     const accessToken = jwt.sign(payload, process.env.ACCESS_TOKEN_SECRET!, {
       expiresIn: "1h",
     });
@@ -65,5 +61,5 @@ export default class UserService {
       expiresIn: "7d",
     });
     return { accessToken, refreshToken };
-  };
+  }
 }

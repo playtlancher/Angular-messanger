@@ -2,7 +2,7 @@ import { WhereOptions } from "sequelize";
 import File from "../models/File";
 
 export default class FileRepository {
-  createFile = async (id: string, messageId: number, name: string): Promise<File | null> => {
+  createFile = async (id: string, messageId: number, name: string) => {
     try {
       const file = await File.create({
         id: id,
@@ -12,7 +12,6 @@ export default class FileRepository {
       return file.toJSON();
     } catch (error: any) {
       console.error(`Error creating message:${error.message}`);
-      return null;
     }
   };
 
