@@ -2,9 +2,9 @@ import UserRepository from "../repositories/UserRepository";
 import jwt, { JwtPayload } from "jsonwebtoken";
 import bcrypt from "bcrypt";
 import dotenv from "dotenv";
-import {MissingRefreshTokenError} from "../Errors/MissingRefreshTokenError";
-import {IncorrectUsernameOrPasswordError} from "../Errors/IncorrectUsernameOrPasswordError";
-import {UserExistsError} from "../Errors/UserExistError";
+import { MissingRefreshTokenError } from "../errors/MissingRefreshTokenError";
+import { IncorrectUsernameOrPasswordError } from "../errors/IncorrectUsernameOrPasswordError";
+import { UserExistsError } from "../errors/UserExistError";
 
 dotenv.config();
 

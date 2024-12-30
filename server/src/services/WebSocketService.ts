@@ -13,8 +13,7 @@ import ChatUserRepository from "../repositories/ChatUserRepository";
 import ChatService from "./ChatService";
 import DecodeJWT from "../Utils/DecodeJWT";
 import DecodedToken from "../interfaces/DecodedToken";
-import {Logger} from "../Utils/Logger";
-import {compareSync} from "bcrypt";
+import Logger from "../Utils/Logger";
 
 type MessageType = "Post" | "Delete" | "Update";
 
@@ -44,7 +43,6 @@ const messageRepository = new MessageRepository();
 const chatService = new ChatService();
 const userRepository = new UserRepository();
 const chatUserRepository = new ChatUserRepository();
-const logger = new Logger()
 
 export default class WebSocketService {
   private wss: WebSocketServer | undefined;
@@ -53,19 +51,18 @@ export default class WebSocketService {
     this.wss = new WebSocketServer({ server });
 
     this.wss.on("connection", (ws: WebSocket, req: any) => {
-
-      const urlParams = new URLSearchParams(req.url.split('?')[1]);
-      const chatId = parseInt(urlParams.get('chatId') || "");
-      const jwtToken = urlParams.get('jwtToken');
+      const urlParams = new URLSearchParams(req.url.split("?")[1]);
+      const chatId = parseInt(urlParams.get("chatId") || "");
+      const jwtToken = urlParams.get("jwtToken");
       if (!jwtToken) return;
-      const id: string =String(DecodeJWT(jwtToken).id);
+      const id: string = String(DecodeJWT(jwtToken).id);
       clients.set(id, ws);
       if (isNaN(chatId) || !jwtToken) {
         ws.send(JSON.stringify({ error: "Invalid chat ID or missing JWT token" }));
         ws.close();
         return;
       }
-      logger.info("Trying handle connection")
+      Logger.info("Trying handle connection");
       this.handleConnection(ws, jwtToken, chatId, id);
     });
 
@@ -76,7 +73,8 @@ export default class WebSocketService {
     try {
       if (!token) {
         ws.send(JSON.stringify({ type: "Error", error: "Invalid token" }));
-        throw new Error("Authentication token is missing or invalid.");
+        Logger.error("Authentication token is missing or invalid.");
+        return;
       }
 
       const decodedToken = DecodeJWT(token);
@@ -84,7 +82,7 @@ export default class WebSocketService {
 
       const messages = await this.loadMessages(chatId, decodedToken);
       ws.send(JSON.stringify({ type: "Post", payload: { messages } }));
-      logger.info("WebSocket connection successfully. Messages sent");
+      Logger.info("WebSocket connection successfully. Messages sent");
 
       ws.on("message", this.onMessage);
       ws.on("close", () => this.handleDisconnection(clientId));
@@ -121,9 +119,9 @@ export default class WebSocketService {
       const event = await this.handleMessageType(type, message, user.id);
       this.broadcast(event);
     } catch (error) {
-      console.error("Error handling message:", error);
+      Logger.error("Error handling message:" + error);
     }
-  }
+  };
 
   private async handleMessageType(type: MessageType, message: ChatMessage, userId: number): Promise<WebSocketEvent> {
     switch (type) {
@@ -176,23 +174,22 @@ export default class WebSocketService {
     return savedFiles;
   }
 
-
   private handleDeleteMessage(message: ChatMessage): WebSocketEvent {
     fileRepository
       .findAllBy({ message_id: message.id })
       .then((files) => files.forEach((file) => fs.unlinkSync(path.join(this.getUploadsDir(), file.id))))
       .catch(console.error);
 
-    messageRepository.deleteMessage(message.id)
-    return this.webSocketEventFabric("Delete", message)
+    messageRepository.deleteMessage(message.id);
+    return this.webSocketEventFabric("Delete", message);
   }
 
   private async handleUpdateMessage(message: ChatMessage): Promise<WebSocketEvent> {
     const updatedMessage = await messageRepository.updateMessage(message.id, message.text);
-    return this.webSocketEventFabric("Update", updatedMessage)
+    return this.webSocketEventFabric("Update", updatedMessage);
   }
 
-  private async broadcast(event: WebSocketEvent){
+  private async broadcast(event: WebSocketEvent) {
     if (!this.wss) {
       return;
     }
@@ -201,12 +198,9 @@ export default class WebSocketService {
     for (const message of messages) {
       try {
         const users = await chatUserRepository.findAllBy({ chat_id: message.chat });
-        const userIds = users.map(user => user.user_id);
+        const userIds = users.map((user) => user.user_id);
         for (const [clientId, client] of clients.entries()) {
-          if (
-              client.readyState === WebSocket.OPEN &&
-              userIds.includes(Number(clientId))
-          ) {
+          if (client.readyState === WebSocket.OPEN && userIds.includes(Number(clientId))) {
             client.send(JSON.stringify(event));
           }
         }
@@ -229,13 +223,13 @@ export default class WebSocketService {
 
   private handleDisconnection(clientId: string): void {
     clients.delete(clientId);
-    console.log(`Client disconnected: ${clientId}`);
+    Logger.info(`Client disconnected: ${clientId}`);
   }
-  private webSocketEventFabric(type:MessageType, messages:unknown):WebSocketEvent {
+  private webSocketEventFabric(type: MessageType, messages: unknown): WebSocketEvent {
     return {
       type: type,
       payload: {
-        messages
+        messages,
       },
     };
   }

@@ -6,17 +6,33 @@ export enum LogLevel {
   FATAL,
 }
 
-export class Logger {
-  private currentLogLevel: LogLevel = Number(process.env.LOG_LEVEL) | 1;
+export default class Logger {
+  private static currentLogLevel: LogLevel = Number(process.env.LOG_LEVEL) | 1;
 
-  public info(msg: string, obj?: Record<string, any>): void {
+  public static info(msg: string, obj?: unknown): void {
     if (this.currentLogLevel <= LogLevel.INFO) {
-      console.log(msg, obj || ""); // think how to aVOID UNDEFINED IN LOGS
+      console.log(msg, obj || "");
     }
   }
 
-  public error(msg: string): void {}
-  public warn(msg: string): void {}
-  public debug(msg: string): void {}
-  public fatal(msg: string): void {}
+  public static error(msg: string, obj?: unknown): void {
+    if (this.currentLogLevel <= LogLevel.INFO) {
+      console.error(msg, obj || "");
+    }
+  }
+  public static warn(msg: string, obj?: unknown): void {
+    if (this.currentLogLevel <= LogLevel.INFO) {
+      console.warn(msg, obj || "");
+    }
+  }
+  public static debug(msg: string, obj?: unknown): void {
+    if (this.currentLogLevel <= LogLevel.INFO) {
+      console.debug(msg, obj || "");
+    }
+  }
+  public static fatal(msg: string, obj?: unknown): void {
+    if (this.currentLogLevel <= LogLevel.INFO) {
+      console.error(msg, obj || "");
+    }
+  }
 }

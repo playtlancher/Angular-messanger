@@ -18,7 +18,9 @@ export class WebSocketService {
     this.closeWebSocket();
     this.chatId = chatId;
     this.messages = [];
-    this.webSocket = new WebSocket(`${this.base_url}?chatId=${chatId}&jwtToken=${this.jwtToken}`);
+    this.webSocket = new WebSocket(
+      `${this.base_url}?chatId=${chatId}&jwtToken=${this.jwtToken}`,
+    );
     this.attachWebSocketEvents();
   }
 

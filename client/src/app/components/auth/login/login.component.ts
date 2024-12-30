@@ -17,7 +17,7 @@ import { AuthService } from '../../../data/services/auth.service';
 })
 export class LoginComponent {
   loginForm: FormGroup;
-  LoginError:string | null = null;
+  LoginError: string | null = null;
   constructor(
     private authService: AuthService,
     private router: Router,

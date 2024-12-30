@@ -1,13 +1,13 @@
 import AuthService from "../services/AuthService";
 import express from "express";
-import {Controller, Cookies, Get, Post, Request, Response} from "@decorators/express";
-import {UserExistsError} from "../Errors/UserExistError";
-import {IncorrectUsernameOrPasswordError} from "../Errors/IncorrectUsernameOrPasswordError";
-import {MissingRefreshTokenError} from "../Errors/MissingRefreshTokenError";
+import { Controller, Cookies, Get, Post, Request, Response } from "@decorators/express";
+import { UserExistsError } from "../errors/UserExistError";
+import { IncorrectUsernameOrPasswordError } from "../errors/IncorrectUsernameOrPasswordError";
+import { MissingRefreshTokenError } from "../errors/MissingRefreshTokenError";
+import Logger from "../Utils/Logger";
 
 @Controller("/")
 export default class AuthController {
-
   constructor(private readonly authService: AuthService) {
     this.authService = new AuthService();
   }
@@ -25,13 +25,14 @@ export default class AuthController {
         refreshToken,
       });
     } catch (e) {
-
       switch (true) {
         case e instanceof IncorrectUsernameOrPasswordError: {
+          Logger.error("IncorrectUsernameOrPasswordError", e);
           res.status(401).send(e.message);
           break;
         }
         default: {
+          Logger.error("Server error:", e);
           res.status(500).send("Internal server error");
         }
       }
@@ -54,10 +55,12 @@ export default class AuthController {
     } catch (e) {
       switch (true) {
         case e instanceof UserExistsError: {
+          Logger.error("UserExistsError:", e.message);
           res.status(400).send(e.message);
           break;
         }
         default: {
+          Logger.error("Server error:", e);
           res.status(500).send("Internal server error");
         }
       }
@@ -78,10 +81,12 @@ export default class AuthController {
     } catch (e) {
       switch (true) {
         case e instanceof MissingRefreshTokenError: {
+          Logger.error("MissingRefreshTokenError:", e.message);
           res.status(400).send(e.message);
           break;
         }
         default: {
+          Logger.error("Server error:", e);
           res.status(500).send("Internal server error");
         }
       }
@@ -97,7 +102,8 @@ export default class AuthController {
       });
 
       res.status(200).send("User logged out successfully");
-    } catch (error) {
+    } catch (e) {
+      Logger.error("Server error:", e);
       res.status(500).send("Internal server error");
     }
   }

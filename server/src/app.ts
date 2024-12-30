@@ -10,6 +10,7 @@ import { init } from "./config/DB";
 import AuthController from "./controllers/AuthController";
 import ChatController from "./controllers/ChatController";
 import { checkAccessToken } from "./middlewares/AuthMiddleware";
+import Logger from "./Utils/Logger";
 
 dotenv.config();
 
@@ -53,7 +54,7 @@ await attachControllers(app, [AuthController, ChatController]);
 
 const PORT: number = parseInt(process.env.PORT || "8000", 10);
 const server = app.listen(PORT, () => {
-  console.log(`🚀 Server running at http://localhost:${PORT}/`);
+  Logger.info(`🚀 Server running at http://localhost:${PORT}/`);
 });
 
 const wss = webSocketService.initWebSocketServer(server);

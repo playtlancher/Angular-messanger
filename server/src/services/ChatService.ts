@@ -5,6 +5,8 @@ import UserRepository from "../repositories/UserRepository";
 import DecodedToken from "../interfaces/DecodedToken";
 import Message from "../models/Message";
 import Chat from "../models/Chat";
+import { UserNotFoundError } from "../errors/UserNotFoundError";
+import { AccessForbiddenError } from "../errors/AccessForbiddenError";
 
 export default class ChatService {
   private chatUserRepository = new ChatUserRepository();
@@ -22,7 +24,7 @@ export default class ChatService {
   public getChatMessages = async (chatId: number, token: DecodedToken): Promise<Message[]> => {
     const hasAccess = await this.hasChatAccess(token.id, chatId);
     if (!hasAccess) {
-      throw new Error("Access to this chat is forbidden");
+      throw new AccessForbiddenError("Access to this chat is forbidden");
     }
     return await this.getMessagesForChat(chatId);
   };
@@ -32,7 +34,7 @@ export default class ChatService {
 
     const user = await this.userRepository.findOneBy({ username });
     if (!user) {
-      throw new Error("User not found");
+      throw new UserNotFoundError("User not found");
     }
 
     await Promise.all([this.chatUserRepository.createConnection(token.id, chat.id), this.chatUserRepository.createConnection(user.id, chat.id)]);
