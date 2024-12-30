@@ -5,6 +5,7 @@ import { AuthService } from '../data/services/auth.service';
 
 export const authTokenInterceptor: HttpInterceptorFn = (req, next) => {
   const authService = inject(AuthService);
+  localStorage.setItem('user', String(authService.getUserId()));
   return next(req).pipe(
     catchError((error) => {
       if (error.status === 401 || error.status === 0) {

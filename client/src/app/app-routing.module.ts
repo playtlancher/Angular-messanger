@@ -1,7 +1,7 @@
 import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
-import { LoginComponent } from './auth/login/login.component';
-import { ChatSidebarItemComponent } from './components/chat-sidebar-item/chat-sidebar-item.component';
+import { LoginComponent } from './components/auth/login/login.component';
+import { ChatSidebarItemComponent } from './components/chat/chat-sidebar-item/chat-sidebar-item.component';
 import { canActivateAuth } from './auth/access.guard';
 
 const routes: Routes = [

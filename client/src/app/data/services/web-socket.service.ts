@@ -2,7 +2,6 @@ import { Injectable } from '@angular/core';
 import { Message } from '../interfaces/message.interface';
 import { environment } from '../../../environments/environment';
 import { AuthService } from './auth.service';
-import { Chat } from '../interfaces/chat.interface';
 
 @Injectable({
   providedIn: 'root',
@@ -13,12 +12,13 @@ export class WebSocketService {
   public messages: Message[] = [];
   private base_url = environment['BASE_WS_URL'];
   private chatId: number = -1;
+  private jwtToken: string | null = localStorage.getItem('token');
 
   public openWebSocket(chatId: number): void {
     this.closeWebSocket();
     this.chatId = chatId;
     this.messages = [];
-    this.webSocket = new WebSocket(`${this.base_url}/${chatId}`);
+    this.webSocket = new WebSocket(`${this.base_url}?chatId=${chatId}&jwtToken=${this.jwtToken}`);
     this.attachWebSocketEvents();
   }
 

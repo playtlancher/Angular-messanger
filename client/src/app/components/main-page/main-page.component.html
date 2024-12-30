@@ -1,13 +1,8 @@
 <div class="flex h-screen">
   <div id="side-panel" class="w-1/4 bg-gray-800 flex flex-col">
-    <div
-      class="flex justify-between items-center p-5 border-b border-gray-700"
-    >
+    <div class="flex justify-between items-center p-5 border-b border-gray-700">
       <h1 class="text-2xl font-bold">Chats</h1>
-      <a routerLink="/new-chat"
-        class="text-xl bg-indigo-600 text-white rounded-full p-2 hover:bg-indigo-700">
-        +
-      </a>
+      <a routerLink="/new-chat" class="text-xl bg-indigo-600 text-white rounded-full p-2 hover:bg-indigo-700">+</a>
     </div>
     <div class="p-2 scrollable scrollbar-hide">
       @for (chat of chats; track chat.id) {
@@ -17,11 +12,11 @@
   </div>
 
   <div class="w-3/4 flex flex-col">
-    <div style="max-height: 100vh"
-      id="activeChat"
-      class="flex-1 bg-gray-800 space-y-4"
-    >
+    <div style="max-height: 100vh" id="activeChat" class="flex-1 bg-gray-800 space-y-4">
       <router-outlet></router-outlet>
     </div>
   </div>
+  @if (contextMenuService.isVisible$ | async){
+    <app-context-menu [positionX]="contextMenuService.positionX" [positionY]="contextMenuService.positionY" [message]="contextMenuService.clickedMessage!"></app-context-menu>
+  }
 </div>

@@ -1,5 +1,5 @@
 import { Component, Input } from '@angular/core';
-import { Chat } from '../../data/interfaces/chat.interface';
+import { Chat } from '../../../data/interfaces/chat.interface';
 import { RouterLink } from '@angular/router';
 
 @Component({

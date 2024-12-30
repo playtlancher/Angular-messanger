@@ -2,6 +2,9 @@ import UserRepository from "../repositories/UserRepository";
 import jwt, { JwtPayload } from "jsonwebtoken";
 import bcrypt from "bcrypt";
 import dotenv from "dotenv";
+import {MissingRefreshTokenError} from "../Errors/MissingRefreshTokenError";
+import {IncorrectUsernameOrPasswordError} from "../Errors/IncorrectUsernameOrPasswordError";
+import {UserExistsError} from "../Errors/UserExistError";
 
 dotenv.config();
 
@@ -16,7 +19,7 @@ export default class AuthService {
   async register(username: string, password: string) {
     const isUserExist = await this.userRepository.findAllBy({ username });
     if (isUserExist.length > 0) {
-      throw new Error("User with this username already exists");
+      throw new UserExistsError("User with this username already exists");
     }
     await this.userRepository.createUser(username, password);
   }
@@ -25,7 +28,7 @@ export default class AuthService {
     const user = await this.userRepository.findOneBy({ username });
 
     if (!user || !(await bcrypt.compare(password, user.password))) {
-      throw Error("Incorrect username or password");
+      throw new IncorrectUsernameOrPasswordError("Incorrect username or password");
     }
     const { accessToken, refreshToken } = this.createTokens({
       id: user.id,
@@ -39,7 +42,7 @@ export default class AuthService {
 
   async refreshAccessToken(oldRefreshToken: string): Promise<Tokens> {
     if (!oldRefreshToken) {
-      throw new Error("Refresh token is missing");
+      throw new MissingRefreshTokenError("Refresh token is missing");
     }
     const decoded = jwt.verify(oldRefreshToken, process.env.REFRESH_TOKEN_SECRET!) as JwtPayload;
 

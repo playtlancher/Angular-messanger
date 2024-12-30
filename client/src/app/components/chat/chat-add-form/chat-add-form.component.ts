@@ -6,9 +6,9 @@ import {
   ReactiveFormsModule,
   Validators,
 } from '@angular/forms';
-import { ChatService } from '../../data/services/chat.service';
-import { UserService } from '../../data/services/user.service';
-import { User } from '../../data/interfaces/user.interface';
+import { ChatService } from '../../../data/services/chat.service';
+import { UserService } from '../../../data/services/user.service';
+import { User } from '../../../data/interfaces/user.interface';
 
 @Component({
   selector: 'app-chat-sidebar-item-add-form',

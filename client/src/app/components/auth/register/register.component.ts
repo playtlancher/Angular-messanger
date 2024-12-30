@@ -5,7 +5,7 @@ import {
   ReactiveFormsModule,
   Validators,
 } from '@angular/forms';
-import { AuthService } from '../../data/services/auth.service';
+import { AuthService } from '../../../data/services/auth.service';
 import { NgIf } from '@angular/common';
 import { Router, RouterLink } from '@angular/router';
 
@@ -18,7 +18,6 @@ import { Router, RouterLink } from '@angular/router';
 })
 export class RegisterComponent {
   registrationError: string | null = null;
-  passwordMismatch: boolean = false;
 
   constructor(
     private authService: AuthService,
@@ -33,7 +32,6 @@ export class RegisterComponent {
 
   onSubmit() {
     this.registrationError = null;
-    this.passwordMismatch = false;
 
     if (!this.registrationForm.valid) {
       console.error('Form is not valid.');
@@ -55,7 +53,7 @@ export class RegisterComponent {
         this.router.navigate(['/login']);
       },
       error: (err) => {
-        this.registrationError = err.error.message;
+        this.registrationError = err.error;
       },
     });
   }

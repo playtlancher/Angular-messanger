@@ -1,30 +1,22 @@
 import AuthService from "../services/AuthService";
 import express from "express";
-import {
-  Controller,
-  Cookies,
-  Get,
-  Post,
-  Request,
-  Response,
-} from "@decorators/express";
+import {Controller, Cookies, Get, Post, Request, Response} from "@decorators/express";
+import {UserExistsError} from "../Errors/UserExistError";
+import {IncorrectUsernameOrPasswordError} from "../Errors/IncorrectUsernameOrPasswordError";
+import {MissingRefreshTokenError} from "../Errors/MissingRefreshTokenError";
 
 @Controller("/")
 export default class AuthController {
-  private userService: AuthService = new AuthService();
+
+  constructor(private readonly authService: AuthService) {
+    this.authService = new AuthService();
+  }
 
   @Post("/login")
-  async login(
-    @Response() res: express.Response,
-    @Request() req: express.Request,
-    next: express.NextFunction,
-  ): Promise<void> {
+  async login(@Response() res: express.Response, @Request() req: express.Request, next: express.NextFunction): Promise<void> {
     try {
       const { username, password } = req.body;
-      const { accessToken, refreshToken } = await this.userService.login(
-        username,
-        password,
-      );
+      const { accessToken, refreshToken } = await this.authService.login(username, password);
 
       this.setTokens(accessToken, refreshToken, res);
       res.status(200).json({
@@ -33,11 +25,10 @@ export default class AuthController {
         refreshToken,
       });
     } catch (e) {
-      const error = e as Error;
-      console.error(error.message);
-      switch (error.message) {
-        case "Incorrect username or password": {
-          res.status(401).json({ message: error });
+
+      switch (true) {
+        case e instanceof IncorrectUsernameOrPasswordError: {
+          res.status(401).send(e.message);
           break;
         }
         default: {
@@ -48,10 +39,7 @@ export default class AuthController {
   }
 
   @Post("/registration")
-  async registration(
-    @Response() res: express.Response,
-    @Request() req: express.Request,
-  ): Promise<void> {
+  async registration(@Response() res: express.Response, @Request() req: express.Request): Promise<void> {
     try {
       const { username, password, confirmPassword } = req.body;
       // if (username.trim() === "" || username.includes(" ")) {
@@ -62,12 +50,11 @@ export default class AuthController {
       //   res.status(400).json({ message: "Password mismatch or empty" });
       //   return;
       // }
-      this.userService.register(username, password);
+      await this.authService.register(username, password);
     } catch (e) {
-      const error = e as Error;
-      switch (error.message) {
-        case "User with this username already exists": {
-          res.status(400).send("User with this username already exists");
+      switch (true) {
+        case e instanceof UserExistsError: {
+          res.status(400).send(e.message);
           break;
         }
         default: {
@@ -78,14 +65,10 @@ export default class AuthController {
   }
 
   @Post("/refresh-access-token")
-  async refreshAccessToken(
-    @Response() res: express.Response,
-    @Cookies("refreshToken") oldRefreshToken: string,
-  ): Promise<void> {
+  async refreshAccessToken(@Response() res: express.Response, @Cookies("refreshToken") oldRefreshToken: string): Promise<void> {
     console.log("Refresh access token");
     try {
-      const { accessToken, refreshToken } =
-        await this.userService.refreshAccessToken(oldRefreshToken);
+      const { accessToken, refreshToken } = await this.authService.refreshAccessToken(oldRefreshToken);
       this.setTokens(accessToken, refreshToken, res);
       res.status(200).json({
         message: "Token refreshed successfully.",
@@ -93,10 +76,9 @@ export default class AuthController {
         refreshToken: refreshToken,
       });
     } catch (e) {
-      const error = e as Error;
-      switch (error.message) {
-        case "Refresh token is missing": {
-          res.status(400).send({ message: "Refresh token is not provided" });
+      switch (true) {
+        case e instanceof MissingRefreshTokenError: {
+          res.status(400).send(e.message);
           break;
         }
         default: {
@@ -120,11 +102,7 @@ export default class AuthController {
     }
   }
 
-  private setTokens(
-    accessToken: string,
-    refreshToken: string,
-    res: express.Response,
-  ) {
+  private setTokens(accessToken: string, refreshToken: string, res: express.Response) {
     res.cookie("accessToken", accessToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",

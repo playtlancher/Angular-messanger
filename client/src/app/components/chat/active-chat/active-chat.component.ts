@@ -5,20 +5,21 @@ import {
   OnInit,
   ViewChild,
 } from '@angular/core';
-import { Message } from '../../data/interfaces/message.interface';
-import { ChatMessageComponent } from '../message/chat-message.component';
+import { Message } from '../../../data/interfaces/message.interface';
+import { MessageComponent } from '../message/message.component';
 import { ActivatedRoute, RouterLink } from '@angular/router';
-import { AuthService } from '../../data/services/auth.service';
-import { WebSocketService } from '../../data/services/web-socket.service';
-import { convertFilesToBase64 } from '../../data/utilities/BaseConvertor';
+import { AuthService } from '../../../data/services/auth.service';
+import { WebSocketService } from '../../../data/services/web-socket.service';
+import { convertFilesToBase64 } from '../../../data/utilities/BaseConvertor';
 import { FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { UploadingFileComponent } from '../uploading-file/uploading-file.component';
-import { ChatService } from '../../data/services/chat.service';
+import { ChatService } from '../../../data/services/chat.service';
+import { ContextMenuService } from '../../../data/services/context-menu.service';
 
 @Component({
   selector: 'app-active-chat',
   imports: [
-    ChatMessageComponent,
+    MessageComponent,
     RouterLink,
     UploadingFileComponent,
     ReactiveFormsModule,
@@ -36,10 +37,11 @@ export class ActiveChatComponent implements OnInit, OnDestroy {
   files: File[] = [];
 
   constructor(
-    private activatedRoute: ActivatedRoute,
-    public webSocketService: WebSocketService,
-    private authService: AuthService,
-    private chatService: ChatService,
+    private readonly activatedRoute: ActivatedRoute,
+    protected readonly webSocketService: WebSocketService,
+    private readonly authService: AuthService,
+    private readonly chatService: ChatService,
+    protected readonly contextMenuService: ContextMenuService,
   ) {}
 
   ngOnInit(): void {
@@ -63,8 +65,6 @@ export class ActiveChatComponent implements OnInit, OnDestroy {
         this.chatName = this.chatService.getChatById(this.chatId).name;
         localStorage.setItem('chat', this.chatName);
       }
-      this.userId = this.authService.getDecodedToken().id;
-      localStorage.setItem('user', String(this.userId));
     });
   }
 

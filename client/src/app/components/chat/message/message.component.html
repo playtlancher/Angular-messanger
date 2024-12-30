@@ -1,0 +1,45 @@
+<div class="d-flex">
+<!--  @if (message.from !== user) {-->
+    <div class="flex {{user===message.from?'items-end justify-end':'items-start'}}">
+      <div [ngClass]="this.messageStyleClass()">
+        <span>{{ message.text }}</span>
+        @if (message.files && message.files.length > 0) {
+          <div class="file-container mt-2">
+            @for (file of message.files;track file.id) {
+              <div style="cursor:pointer" (click)="downloadFile(file)" class="file-item bg-indigo-600 p-2 rounded-lg flex items-center mt-1">
+                <img ngSrc="/assets/images/file.png" alt="icon" class="w-5 h-5 mr-2" height="225" width="225"/>
+                <span class="truncate text-sm">{{ file.name }}</span>
+              </div>
+            }
+          </div>
+        }
+        <span class="text-xs text-gray-400">{{ message.date | date: 'd MMMM HH:mm' }}</span>
+      </div>
+    </div>
+<!--  } @else {-->
+<!--    <div>-->
+<!--      <div [ngClass]="this.messageStyleClass()">-->
+<!--        <div class="flex flex-col">-->
+<!--          @if (!isEditing) {-->
+<!--            <span>{{ message.text }}</span>-->
+<!--          } @else {-->
+<!--            <textarea [(ngModel)]="updatedText" class="w-full p-2 rounded-lg mt-2 text-black" rows="4"></textarea>-->
+<!--            <button (click)="cancelUpdateMessage()" class="bg-blue-500 text-white p-2 rounded-lg mt-2 w-full">Cancel</button>-->
+<!--            <button (click)="saveUpdatedMessage()" class="bg-blue-500 text-white p-2 rounded-lg mt-2 w-full">Save</button>-->
+<!--          }-->
+<!--          @if (message.files && message.files.length > 0) {-->
+<!--            <div class="file-container mt-2">-->
+<!--              @for (file of message.files; track file.id) {-->
+<!--                <div style="cursor:pointer" (click)="downloadFile(file)" class="file-item bg-gray-600 p-2 rounded-lg flex items-center mt-1">-->
+<!--                  <img src="../../../../assets/images/file.png" alt="icon" class="w-5 h-5 mr-2" />-->
+<!--                  <span class="truncate text-sm">{{ file.name }}</span>-->
+<!--                </div>-->
+<!--              }-->
+<!--            </div>-->
+<!--          }-->
+<!--        </div>-->
+<!--        <span class="text-xs float-end text-gray-400">{{ message.date | date: 'd MMMM HH:mm' }}</span>-->
+<!--      </div>-->
+<!--    </div>-->
+<!--  }-->
+</div>

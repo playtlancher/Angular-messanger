@@ -13,7 +13,7 @@
 
   <div #MessageContainer class="pt-10 px-6 pb-6 space-y-4 scrollable scrollbar-hide flex-1 max-h-[calc(100vh-165px)]">
     @for (message of webSocketService.messages; track message.id) {
-      <message [user]="userId" [message]="message"></message>
+      <message [message]="message" (contextmenu)="contextMenuService.open(message, $event)"></message>
     }
   </div>
 

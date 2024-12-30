@@ -13,3 +13,24 @@
 .scrollable{
   overflow-y: auto;
 }
+.p-absolute{
+  position: absolute!important;
+}
+.p-sticky {
+  position: sticky !important;
+}
+.p-relative{
+  position: relative !important;
+}
+
+.t-0 {
+  top: 0 !important;
+}
+
+.width-100{
+  width: 100% !important;
+}
+
+.height-100vh{
+  height: 100vh !important;
+}

@@ -3,26 +3,20 @@ import jwt from "jsonwebtoken";
 
 const allowedEndpoints = ["/login", "/registration", "/refresh-access-token"];
 
-export function checkAccessToken(
-  req: Request,
-  res: Response,
-  next: NextFunction,
-) {
+export function checkAccessToken(req: Request, res: Response, next: NextFunction) {
   if (allowedEndpoints.includes(req.path) || req.method === "OPTIONS") {
     return next();
   }
 
   const token = req.cookies.accessToken;
   if (!token) {
-    console.warn("Access token is missing.");
+    console.warn("Access token is missing!!!!!!.");
     res.status(401).send("Unauthorized");
   }
 
   const secret = process.env.ACCESS_TOKEN_SECRET;
   if (!secret) {
-    console.error(
-      "ACCESS_TOKEN_SECRET is not defined in the environment variables.",
-    );
+    console.error("ACCESS_TOKEN_SECRET is not defined in the environment variables.");
     res.status(500).send("Internal server error.");
   }
 

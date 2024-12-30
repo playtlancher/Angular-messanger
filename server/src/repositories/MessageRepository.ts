@@ -3,11 +3,7 @@ import Message from "../models/Message";
 import User from "../models/User";
 
 export default class MessageRepository {
-  async createMessage(
-    text: string,
-    senderId: number,
-    chatId: number,
-  ): Promise<Message | null> {
+  async createMessage(text: string, senderId: number, chatId: number): Promise<Message | null> {
     try {
       const message = await Message.create({
         text: text,
@@ -58,10 +54,7 @@ export default class MessageRepository {
     });
   }
 
-  async updateMessage(
-    messageId: number,
-    text: string,
-  ): Promise<Message | null> {
+  async updateMessage(messageId: number, text: string): Promise<Message | null> {
     const message = await Message.findOne({ where: { id: messageId } });
     if (!message) return null;
     await message.update({ text: text });

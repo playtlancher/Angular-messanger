@@ -12,12 +12,12 @@ export default class FileService {
     const filePath = path.join(__dirname, "..", "uploads", String(fileId));
 
     if (!fs.existsSync(filePath)) {
-      throw new Error("File not found");
+      throw new Error("File not found 1");
     }
 
     const file = await this.fileRepository.findOneBy({ id: fileId });
     if (!file) {
-      throw new Error("File not found");
+      throw new Error("File not found 2");
     }
 
     return { filePath, fileName: file.name };

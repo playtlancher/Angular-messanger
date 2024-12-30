@@ -45,7 +45,11 @@
           </small>
         }
       </div>
-
+      @if (LoginError){
+        <div class="text-red-500 text-sm mb-4 text-center">
+          <p>{{ LoginError }}</p>
+        </div>
+      }
       <div class="flex items-center justify-between">
         <div class="flex items-center">
           <input

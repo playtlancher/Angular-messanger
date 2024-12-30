@@ -85,7 +85,8 @@ export class AuthService {
     localStorage.removeItem('refreshToken');
   }
 
-  getDecodedToken(): DecodedToken {
+  getDecodedToken(): DecodedToken | null {
+    if (!this.accessToken) return null;
     return this.decodeJWT(this.accessToken);
   }
 
@@ -97,5 +98,9 @@ export class AuthService {
 
   isAuth() {
     return !!this.accessToken;
+  }
+  getUserId(): number | null {
+    const decoded = this.getDecodedToken();
+    return decoded ? decoded.id : null;
   }
 }
