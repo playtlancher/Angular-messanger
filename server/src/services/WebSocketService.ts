@@ -7,7 +7,6 @@ import * as fs from "node:fs";
 import { fileURLToPath } from "node:url";
 import { dirname } from "path";
 import Message from "../models/Message";
-import MessageRepository from "../repositories/MessageRepository";
 import UserRepository from "../repositories/UserRepository";
 import ChatUserRepository from "../repositories/ChatUserRepository";
 import ChatService from "./ChatService";
@@ -15,6 +14,7 @@ import DecodeJWT from "../Utils/DecodeJWT";
 import DecodedToken from "../interfaces/DecodedToken";
 import Logger from "../Utils/Logger";
 import MessageService from "./MessageService";
+import CheckUserAccess from "../Utils/CheckUserAccess";
 
 type MessageType = "Post" | "Delete" | "Update";
 
@@ -51,7 +51,7 @@ export default class WebSocketService {
   initWebSocketServer(server: any): WebSocketServer {
     this.wss = new WebSocketServer({ server });
 
-    this.wss.on("connection", (ws: WebSocket, req: any) => {
+    this.wss.on("connection", async (ws: WebSocket, req: any) => {
       const urlParams = new URLSearchParams(req.url.split("?")[1]);
       const chatId = parseInt(urlParams.get("chatId") || "");
       const jwtToken = urlParams.get("jwtToken");
@@ -59,7 +59,13 @@ export default class WebSocketService {
       const id: string = String(DecodeJWT(jwtToken).id);
       clients.set(id, ws);
       if (isNaN(chatId) || !jwtToken) {
-        ws.send(JSON.stringify({ error: "Invalid chat ID or missing JWT token" }));
+        ws.send(JSON.stringify({type: "Error", error: "Invalid chat ID or missing JWT token" }));
+        ws.close();
+        return;
+      }
+      const hasAccess = await CheckUserAccess(Number(id),chatId)
+      if (!hasAccess){
+        ws.send(JSON.stringify({ type: "Error", error: "Forbidden access to this chat" }));
         ws.close();
         return;
       }

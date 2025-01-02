@@ -11,6 +11,7 @@ import AuthController from "./controllers/AuthController";
 import ChatController from "./controllers/ChatController";
 import { checkAccessToken } from "./middlewares/AuthMiddleware";
 import Logger from "./Utils/Logger";
+import UserController from "./controllers/UserController";
 
 dotenv.config();
 
@@ -41,7 +42,7 @@ app.use(
 
 const corsOptions = {
   origin: ["http://localhost:4200"],
-  methods: ["GET", "POST", "OPTIONS"],
+  methods: ["GET", "POST", "OPTIONS","DELETE"],
   allowedHeaders: ["Content-Type", "Authorization"],
   credentials: true,
 };
@@ -50,7 +51,7 @@ app.options("*", cors(corsOptions));
 
 app.use(express.static("public"));
 
-await attachControllers(app, [AuthController, ChatController]);
+await attachControllers(app, [AuthController, ChatController, UserController]);
 
 const PORT: number = parseInt(process.env.PORT || "8000", 10);
 const server = app.listen(PORT, () => {

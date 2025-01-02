@@ -7,6 +7,7 @@ import { MessageContextMenuComponent } from '../chat/message-context-menu/messag
 import { ContextMenuService } from '../../services/context-menu.service';
 import { AsyncPipe } from '@angular/common';
 import { AuthService } from '../../services/auth.service';
+import { ChatContextMenuComponent } from '../chat/chat-context-menu/chat-context-menu.component';
 
 @Component({
   selector: 'app-main-page',
@@ -16,6 +17,7 @@ import { AuthService } from '../../services/auth.service';
     RouterLink,
     MessageContextMenuComponent,
     AsyncPipe,
+    ChatContextMenuComponent,
   ],
   templateUrl: './main-page.component.html',
   standalone: true,

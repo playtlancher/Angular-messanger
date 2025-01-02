@@ -18,4 +18,5 @@ export const routes: Routes = [
     ],
     canActivate: [canActivateAuth],
   },
+  { path: '**', component: MainPageComponent },
 ];

@@ -4,7 +4,7 @@ import { ContextMenuService } from '../../../services/context-menu.service';
 import { NgStyle } from '@angular/common';
 
 @Component({
-  selector: 'app-message-context-menu',
+  selector: 'message-context-menu',
   templateUrl: './message-context-menu.component.html',
   styleUrls: ['./message-context-menu.component.scss'],
   standalone: true,

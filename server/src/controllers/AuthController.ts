@@ -5,16 +5,13 @@ import { UserExistsError } from "../errors/UserExistError";
 import { IncorrectUsernameOrPasswordError } from "../errors/IncorrectUsernameOrPasswordError";
 import { MissingRefreshTokenError } from "../errors/MissingRefreshTokenError";
 import Logger from "../Utils/Logger";
-import UserService from "../services/UserService";
 
 @Controller("/auth")
 export default class AuthController {
   constructor(
     private readonly authService: AuthService,
-    private readonly userService: UserService,
   ) {
     this.authService = new AuthService();
-    this.userService = new UserService();
   }
 
   @Post("/login")

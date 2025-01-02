@@ -1,13 +1,14 @@
-import { Injectable } from '@angular/core';
-import { Message } from '../interfaces/message.interface';
-import { environment } from '../../environments/environment';
-import { AuthService } from './auth.service';
+import {Injectable} from '@angular/core';
+import {Message} from '../interfaces/message.interface';
+import {environment} from '../../environments/environment';
+import {AuthService} from './auth.service';
+import {Router} from '@angular/router';
 
 @Injectable({
   providedIn: 'root',
 })
 export class WebSocketService {
-  constructor(private readonly authService: AuthService) {}
+  constructor(private readonly authService: AuthService, private readonly router: Router) {}
   private webSocket?: WebSocket;
   public messages: Message[] = [];
   private base_url = environment['BASE_WS_URL'];
@@ -40,7 +41,6 @@ export class WebSocketService {
   }
 
   private handleMessage(event: MessageEvent): void {
-    try {
       const { type, error, payload } = JSON.parse(event.data);
       switch (type) {
         case 'Post': {
@@ -63,26 +63,32 @@ export class WebSocketService {
           console.warn(`Unhandled WebSocket event type: ${type}`);
         }
       }
-    } catch (error) {
-      console.error(
-        'Error parsing WebSocket chat-sidebar-item-message:',
-        error,
-      );
-    }
   }
   private handleError(error: string): void {
-    console.error(error);
-    if (error === 'Invalid token') {
-      this.authService.refreshAccessToken().subscribe({
-        next: () => {
-          this.openWebSocket(this.chatId);
-        },
-        error: (refreshError) => {
-          console.error('Failed to refresh token:', refreshError);
-        },
-      });
+    switch (error){
+      case 'Invalid token':{
+        this.authService.refreshAccessToken().subscribe({
+          next: () => {
+            this.openWebSocket(this.chatId);
+          },
+          error: (refreshError) => {
+            console.error('Failed to refresh token:', refreshError);
+          },
+        });
+        break;
+      }
+      case 'Forbidden access to this chat':{
+        this.router.navigate(["/"])
+        break;
+      }
+      default:{
+        console.error('Access to the chat is forbidden. Closing WebSocket.');
+        this.closeWebSocket();
+      }
     }
   }
+
+
   private addMessages(messages: Message[]): void {
     messages.forEach((message) => {
       this.messages.push(message);

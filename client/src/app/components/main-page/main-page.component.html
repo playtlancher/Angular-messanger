@@ -8,28 +8,30 @@
         >
           ☰
         </button>
-        @if(isDropdownOpen){
-        <div class="absolute left-0 mt-2 bg-gray-800 text-white rounded shadow-lg w-48">
-          <a
-            routerLink="/profile"
-            class="block px-4 py-2 hover:bg-gray-700"
-          >Profile</a>
-          <a
-            routerLink="/settings"
-            class="block px-4 py-2 hover:bg-gray-700"
-          >Settings</a>
-          <button
-            (click)="logout()"
-            class="block w-full text-left px-4 py-2 hover:bg-gray-700"
-          >Logout</button>
-        </div>
+        @if (isDropdownOpen) {
+          <div class="absolute left-0 mt-2 bg-gray-800 text-white rounded shadow-lg w-48">
+            <a
+              routerLink="/profile"
+              class="block px-4 py-2 hover:bg-gray-700"
+            >Profile</a>
+            <a
+              routerLink="/settings"
+              class="block px-4 py-2 hover:bg-gray-700"
+            >Settings</a>
+            <button
+              (click)="logout()"
+              class="block w-full text-left px-4 py-2 hover:bg-gray-700"
+            >Logout
+            </button>
+          </div>
         }
-      </div>      <h1 class="text-2xl font-bold">Chats</h1>
+      </div>
+      <h1 class="text-2xl font-bold">Chats</h1>
       <a routerLink="/new-chat" class="text-xl bg-indigo-600 text-white rounded-full p-2 hover:bg-indigo-700">+</a>
     </div>
     <div class="p-2 scrollable scrollbar-hide">
       @for (chat of chats; track chat.id) {
-        <chat-sidebar-item [chat]="chat"></chat-sidebar-item>
+        <chat-sidebar-item [chat]="chat" (contextmenu)="contextMenuService.openChatContextMenu(chat, $event)"></chat-sidebar-item>
       }
     </div>
   </div>
@@ -39,7 +41,12 @@
       <router-outlet></router-outlet>
     </div>
   </div>
-  @if (contextMenuService.isVisible$ | async){
-    <app-context-menu [positionX]="contextMenuService.positionX" [positionY]="contextMenuService.positionY" [message]="contextMenuService.clickedMessage!"></app-context-menu>
+  @if ((contextMenuService.isVisible$ | async) && contextMenuService.clickedMessage) {
+    <message-context-menu [positionX]="contextMenuService.positionX" [positionY]="contextMenuService.positionY"
+                          [message]="contextMenuService.clickedMessage!"></message-context-menu>
+  }
+  @if ((contextMenuService.isVisible$ | async) && contextMenuService.clickedChat) {
+    <chat-context-menu [positionX]="contextMenuService.positionX" [positionY]="contextMenuService.positionY"
+                       [chat]="contextMenuService.clickedChat!"></chat-context-menu>
   }
 </div>

@@ -1,8 +1,8 @@
-import {Injectable} from '@angular/core';
-import {HttpClient} from '@angular/common/http';
-import {Chat} from '../interfaces/chat.interface';
-import {environment} from '../../environments/environment';
-import {catchError, Observable, tap} from 'rxjs';
+import { Injectable } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { Chat } from '../interfaces/chat.interface';
+import { environment } from '../../environments/environment';
+import { catchError, Observable, tap } from 'rxjs';
 
 @Injectable({
   providedIn: 'root',
@@ -51,11 +51,19 @@ export class ChatService {
         },
       });
   }
-  deleteChat(chatId: number): void {
-    this.http.delete(`${this.base_url}/chats/${chatId}`, {
+  deleteChat(chat: Chat): void {
+    this.http.delete(`${this.base_url}/chats/${chat.id}`, {
       withCredentials: true,
-    });
-    const index = this.chats$.findIndex((entry) => entry.id === chatId);
-    if (index !== -1) this.chats$.splice(index, 1);
+    }).pipe(
+      tap((res) => {
+        console.log('Chat deleted successfully:', res);
+        const index = this.chats$.findIndex((entry) => entry.id === chat.id);
+        if (index !== -1) this.chats$.splice(index, 1);
+      }),
+      catchError((err)=>{
+        console.error(err)
+        throw (err)
+      })
+    ).subscribe();
   }
 }

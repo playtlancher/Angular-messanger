@@ -1,7 +1,6 @@
 import express from "express";
 import ChatService from "../services/ChatService";
 import FileService from "../services/FileService";
-import MessageService from "../services/MessageService";
 import { Controller, Cookies, Delete, Get, Params, Post, Request, Response } from "@decorators/express";
 import DecodeJWT from "../Utils/DecodeJWT";
 import Logger from "../Utils/Logger";
@@ -14,10 +13,8 @@ export default class ChatController {
   constructor(
     private readonly chatService: ChatService,
     private readonly fileService: FileService,
-    private readonly messageService: MessageService,
   ) {
     this.chatService = new ChatService();
-    this.messageService = new MessageService();
     this.fileService = new FileService();
   }
 
@@ -32,26 +29,26 @@ export default class ChatController {
     }
   }
 
-  @Get("/:id")
-  async getChatMessages(@Response() res: express.Response, @Cookies("accessToken") accessToken: string, @Params("id") id: number): Promise<void> {
-    const token = DecodeJWT(accessToken);
-    try {
-      const messages = await this.chatService.getChatMessages(id as number, token);
-      res.status(200).json(messages);
-    } catch (e) {
-      switch (true) {
-        case e instanceof AccessForbiddenError: {
-          Logger.error("Access ForbiddenError", e.message);
-          res.status(403).send("Access to this chat is forbidden");
-          break;
-        }
-        default: {
-          Logger.error("Server error:", e);
-          res.status(500).send("Internal server error");
-        }
-      }
-    }
-  }
+  // @Get("/:id")
+  // async getChatMessages(@Response() res: express.Response, @Cookies("accessToken") accessToken: string, @Params("id") id: number): Promise<void> {
+  //   const token = DecodeJWT(accessToken);
+  //   try {
+  //     const messages = await this.chatService.getChatMessages(id as number, token);
+  //     res.status(200).json(messages);
+  //   } catch (e) {
+  //     switch (true) {
+  //       case e instanceof AccessForbiddenError: {
+  //         Logger.error("Access ForbiddenError", e.message);
+  //         res.status(403).send("Access to this chat is forbidden");
+  //         break;
+  //       }
+  //       default: {
+  //         Logger.error("Server error:", e);
+  //         res.status(500).send("Internal server error");
+  //       }
+  //     }
+  //   }
+  // }
 
   @Post("/")
   async createChat(@Response() res: express.Response, @Request() req: express.Request): Promise<void> {
@@ -77,12 +74,12 @@ export default class ChatController {
   }
 
   @Delete("/:id")
-  async deleteChat(@Response() res: express.Response, @Request() req: express.Request): Promise<void> {
+  async deleteChat(@Response() res: express.Response, @Request() req: express.Request,@Params("id") id: number): Promise<void> {
+    Logger.info(`Deleting chat ${id}`);
     try {
       const token = DecodeJWT(req.cookies.accessToken);
-      const chatId = req.body.params.id;
-      this.chatService.deleteChat(chatId, token);
-      res.status(200).json(chatId);
+      this.chatService.deleteChat(id, token);
+      res.status(200).json(`Chat ${id} successfully deleted.`);
     } catch (e) {
       switch (true) {
         case e instanceof AccessForbiddenError: {
