@@ -1,20 +1,14 @@
-import {
-  Component,
-  ElementRef,
-  OnDestroy,
-  OnInit,
-  ViewChild,
-} from '@angular/core';
-import { Message } from '../../../data/interfaces/message.interface';
+import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Message } from '../../../interfaces/message.interface';
 import { MessageComponent } from '../message/message.component';
 import { ActivatedRoute, RouterLink } from '@angular/router';
-import { AuthService } from '../../../data/services/auth.service';
-import { WebSocketService } from '../../../data/services/web-socket.service';
-import { convertFilesToBase64 } from '../../../data/utilities/BaseConvertor';
+import { WebSocketService } from '../../../services/web-socket.service';
+import { convertFilesToBase64 } from '../../../utilities/BaseConvertor';
 import { FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { UploadingFileComponent } from '../uploading-file/uploading-file.component';
-import { ChatService } from '../../../data/services/chat.service';
-import { ContextMenuService } from '../../../data/services/context-menu.service';
+import { ChatService } from '../../../services/chat.service';
+import { ContextMenuService } from '../../../services/context-menu.service';
+import { ScrollToEndDirective } from '../../../directives/scroll-to-end.directive';
 
 @Component({
   selector: 'app-active-chat',
@@ -23,23 +17,22 @@ import { ContextMenuService } from '../../../data/services/context-menu.service'
     RouterLink,
     UploadingFileComponent,
     ReactiveFormsModule,
+    ScrollToEndDirective,
   ],
   templateUrl: './active-chat.component.html',
   standalone: true,
   styleUrls: ['./active-chat.component.scss'],
 })
 export class ActiveChatComponent implements OnInit, OnDestroy {
-  @ViewChild('MessageContainer') private messageContainer!: ElementRef;
   chatId: number = -1;
   userId: number = parseInt(localStorage.getItem('user')!) || -1;
   chatName: string = localStorage.getItem('chat') || '';
   messageForm!: FormGroup;
   files: File[] = [];
-
+  protected editingMessage: Message | null = null;
   constructor(
     private readonly activatedRoute: ActivatedRoute,
     protected readonly webSocketService: WebSocketService,
-    private readonly authService: AuthService,
     private readonly chatService: ChatService,
     protected readonly contextMenuService: ContextMenuService,
   ) {}
@@ -50,6 +43,10 @@ export class ActiveChatComponent implements OnInit, OnDestroy {
       file: new FormControl(null),
     });
     this.setupChatData();
+    this.contextMenuService.messageToEdit$.subscribe((message) => {
+      this.editingMessage = message;
+      this.editMessage();
+    });
   }
 
   ngOnDestroy(): void {
@@ -62,7 +59,10 @@ export class ActiveChatComponent implements OnInit, OnDestroy {
       if (chatId) {
         this.chatId = parseInt(chatId);
         this.webSocketService.openWebSocket(this.chatId);
-        this.chatName = this.chatService.getChatById(this.chatId).name;
+        let chat = this.chatService.getChatById(this.chatId);
+        if (chat) {
+          this.chatName = chat.name;
+        }
         localStorage.setItem('chat', this.chatName);
       }
     });
@@ -70,20 +70,27 @@ export class ActiveChatComponent implements OnInit, OnDestroy {
 
   async sendMessage(): Promise<void> {
     if (this.messageForm.invalid) return;
-    if (this.messageForm.value.message || this.files.length > 0) {
-      try {
-        const newMessage: Message = {
-          text: this.messageForm.value.message! || '',
-          chat: this.chatId,
-          from: this.userId,
-          files: await convertFilesToBase64(this.files),
-        };
-        this.webSocketService.sendMessage(newMessage);
-        this.messageForm.reset();
-        this.files = [];
-      } catch (error) {
-        console.error('Error sending chat-sidebar-item-message:', error);
+    if (this.editingMessage === null) {
+      if (this.messageForm.value.message || this.files.length > 0) {
+        try {
+          const newMessage: Message = {
+            text: this.messageForm.value.message! || '',
+            chat: this.chatId,
+            from: this.userId,
+            files: await convertFilesToBase64(this.files),
+          };
+          this.webSocketService.sendMessage(newMessage);
+          this.messageForm.reset();
+          this.files = [];
+        } catch (error) {
+          console.error('Error sending chat-sidebar-item-message:', error);
+        }
       }
+    } else {
+      this.editingMessage.text = this.messageForm.value.message;
+      this.webSocketService.updateMessage(this.editingMessage);
+      this.editingMessage = null;
+      this.messageForm.reset();
     }
   }
 
@@ -99,10 +106,11 @@ export class ActiveChatComponent implements OnInit, OnDestroy {
       console.log('No files were selected.');
     }
   }
-  private scrollToBottom(): void {
-    if (this.messageContainer) {
-      const nativeElement = this.messageContainer.nativeElement;
-      nativeElement.scrollTop = nativeElement.scrollHeight;
-    }
+  editMessage(): void {
+    this.messageForm.patchValue({ message: this.editingMessage?.text });
+  }
+  cancelEditing(): void {
+    this.editingMessage = null;
+    this.messageForm.reset();
   }
 }

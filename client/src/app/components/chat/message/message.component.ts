@@ -1,12 +1,9 @@
 import { Component, Input } from '@angular/core';
-import { FileService } from '../../../data/services/file.service';
+import { FileService } from '../../../services/file.service';
 import { FormsModule } from '@angular/forms';
-import {
-  Message,
-  MessageFile,
-} from '../../../data/interfaces/message.interface';
+import { Message, MessageFile } from '../../../interfaces/message.interface';
 import { DatePipe, NgClass, NgOptimizedImage } from '@angular/common';
-import { AuthService } from '../../../data/services/auth.service';
+import { AuthService } from '../../../services/auth.service';
 
 @Component({
   selector: 'message',

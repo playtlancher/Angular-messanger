@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { MessageFile } from '../interfaces/message.interface';
 import { HttpClient } from '@angular/common/http';
-import { environment } from '../../../environments/environment';
+import { environment } from '../../environments/environment';
 
 @Injectable({
   providedIn: 'root',
@@ -13,7 +13,7 @@ export class FileService {
 
   installFile(file: MessageFile) {
     this.http
-      .get(`${this.base_url}/file/${file.id}`, {
+      .get(`${this.base_url}/chats/file/${file.id}`, {
         responseType: 'blob',
         withCredentials: true,
       })

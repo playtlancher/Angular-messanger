@@ -6,7 +6,7 @@ import {
   Validators,
 } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
-import { AuthService } from '../../../data/services/auth.service';
+import { AuthService } from '../../../services/auth.service';
 
 @Component({
   selector: 'app-login',
@@ -38,8 +38,8 @@ export class LoginComponent {
       next: () => {
         this.router.navigate(['/']);
       },
-      error: (err) => {
-        this.LoginError = err.error;
+      error: (e) => {
+        this.LoginError = e.error;
       },
     });
   }

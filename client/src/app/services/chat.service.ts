@@ -1,15 +1,15 @@
-import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
-import { Chat } from '../interfaces/chat.interface';
-import { environment } from '../../../environments/environment';
-import { catchError, Observable, tap } from 'rxjs';
+import {Injectable} from '@angular/core';
+import {HttpClient} from '@angular/common/http';
+import {Chat} from '../interfaces/chat.interface';
+import {environment} from '../../environments/environment';
+import {catchError, Observable, tap} from 'rxjs';
 
 @Injectable({
   providedIn: 'root',
 })
 export class ChatService {
   base_url = environment['BASE_URL'];
-  chats: Chat[] = [];
+  chats$: Chat[] = [];
 
   constructor(private http: HttpClient) {}
 
@@ -18,7 +18,7 @@ export class ChatService {
       .get<Chat[]>(`${this.base_url}/chats`, { withCredentials: true })
       .pipe(
         tap((chats) => {
-          this.chats = chats;
+          this.chats$ = chats;
         }),
         catchError((error) => {
           console.error('Error fetching chats', error.status);
@@ -27,14 +27,14 @@ export class ChatService {
       );
   }
 
-  getChatById(chatId: number): Chat {
-    return <Chat>this.chats.find((chat) => chat.id === chatId);
+  getChatById(chatId: number): Chat | undefined {
+    return this.chats$.find((chat) => chat.id === chatId);
   }
 
   addChat(chatName: string, username: string): void {
     this.http
       .post<{
-        username: string;
+        name: string;
         id: number;
       }>(
         `${this.base_url}/chats`,
@@ -44,10 +44,18 @@ export class ChatService {
       .subscribe({
         next: (response) => {
           console.log('Chat added successfully:', response);
+          this.chats$.push({ id: response.id, name: response.name });
         },
         error: (err) => {
           console.error('Error adding chat:', err);
         },
       });
+  }
+  deleteChat(chatId: number): void {
+    this.http.delete(`${this.base_url}/chats/${chatId}`, {
+      withCredentials: true,
+    });
+    const index = this.chats$.findIndex((entry) => entry.id === chatId);
+    if (index !== -1) this.chats$.splice(index, 1);
   }
 }

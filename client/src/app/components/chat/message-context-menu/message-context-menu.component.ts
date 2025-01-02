@@ -1,16 +1,16 @@
 import { Component, Input } from '@angular/core';
-import { Message } from '../../../data/interfaces/message.interface';
-import { ContextMenuService } from '../../../data/services/context-menu.service';
+import { Message } from '../../../interfaces/message.interface';
+import { ContextMenuService } from '../../../services/context-menu.service';
 import { NgStyle } from '@angular/common';
 
 @Component({
-  selector: 'app-context-menu',
-  templateUrl: './context-menu.component.html',
-  styleUrls: ['./context-menu.component.scss'],
+  selector: 'app-message-context-menu',
+  templateUrl: './message-context-menu.component.html',
+  styleUrls: ['./message-context-menu.component.scss'],
   standalone: true,
   imports: [NgStyle],
 })
-export class ContextMenuComponent {
+export class MessageContextMenuComponent {
   @Input() message!: Message;
   @Input() positionX!: number;
   @Input() positionY!: number;
@@ -24,7 +24,7 @@ export class ContextMenuComponent {
   selectAction(action: string) {
     switch (action) {
       case 'Update': {
-        // this.editMessage();
+        this.editMessage();
         this.contextMenuService.close();
         break;
       }
@@ -35,7 +35,10 @@ export class ContextMenuComponent {
       }
     }
   }
-  deleteMessage() {
+  private deleteMessage() {
     this.contextMenuService.deleteMessage(this.message);
+  }
+  private editMessage(): void {
+    this.contextMenuService.editMessage(this.message);
   }
 }

@@ -2,8 +2,11 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { catchError, tap, throwError } from 'rxjs';
 import { DecodedToken, TokenResponse } from '../interfaces/auth.interface';
-import { environment } from '../../../environments/environment';
+import { environment } from '../../environments/environment';
 import { Router } from '@angular/router';
+import { PasswordMatchError } from '../errors/PasswordMatchError';
+import { PasswordEmptyError } from '../errors/PasswordEmptyError';
+import { InvalidUsernameError } from '../errors/InvalidUsernameError';
 
 @Injectable({
   providedIn: 'root',
@@ -24,17 +27,44 @@ export class AuthService {
   }
 
   register(username: string, password: string, confirmPassword: string) {
-    return this.http.post(`${this.base_url}/registration`, {
-      username,
-      password,
-      confirmPassword,
-    });
+    if (username.trim() === '' || username.includes(' ')) {
+      throw new InvalidUsernameError('Invalid username');
+    }
+    if (password.trim() === '') {
+      throw new PasswordEmptyError('Password empty');
+    }
+    if (password !== confirmPassword) {
+      throw new PasswordMatchError('Passwords do not match');
+    }
+    return this.http
+      .post(`${this.base_url}/auth/registration`, { username, password })
+      .pipe(
+        catchError((error) => {
+          console.log(error);
+          if (error.status === 400) {
+            console.log(error);
+            if (error.error) {
+              return throwError(() => new Error(error.error));
+            } else {
+              return throwError(
+                () => new Error('Bad request. Please try again.'),
+              );
+            }
+          } else if (error.status === 500) {
+            return throwError(
+              () => new Error('Server error. Please try later.'),
+            );
+          } else {
+            return throwError(() => new Error(error.error));
+          }
+        }),
+      );
   }
 
   login(username: string, password: string) {
     return this.http
       .post<TokenResponse>(
-        `${this.base_url}/login`,
+        `${this.base_url}/auth/login`,
         { username, password },
         { withCredentials: true },
       )
@@ -54,7 +84,7 @@ export class AuthService {
     this.clearTokens();
     return this.http
       .post<TokenResponse>(
-        `${this.base_url}/refresh-access-token`,
+        `${this.base_url}/auth/refresh-access-token`,
         {},
         {
           withCredentials: true,
@@ -69,6 +99,16 @@ export class AuthService {
           return throwError(() => error);
         }),
       );
+  }
+
+  logout() {
+    this.http
+      .get(this.base_url + '/auth/logout', {
+        withCredentials: true,
+      })
+      .subscribe();
+    localStorage.clear();
+    this.router.navigate(['/login']);
   }
 
   private storeTokens(accessToken: string, refreshToken: string) {
@@ -99,6 +139,7 @@ export class AuthService {
   isAuth() {
     return !!this.accessToken;
   }
+
   getUserId(): number | null {
     const decoded = this.getDecodedToken();
     return decoded ? decoded.id : null;

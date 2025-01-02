@@ -1,7 +1,30 @@
 <div class="flex h-screen">
   <div id="side-panel" class="w-1/4 bg-gray-800 flex flex-col">
     <div class="flex justify-between items-center p-5 border-b border-gray-700">
-      <h1 class="text-2xl font-bold">Chats</h1>
+      <div class="relative">
+        <button
+          (click)="toggleDropdown()"
+          class="text-white bg-gray-700 p-2 rounded hover:bg-gray-600"
+        >
+          ☰
+        </button>
+        @if(isDropdownOpen){
+        <div class="absolute left-0 mt-2 bg-gray-800 text-white rounded shadow-lg w-48">
+          <a
+            routerLink="/profile"
+            class="block px-4 py-2 hover:bg-gray-700"
+          >Profile</a>
+          <a
+            routerLink="/settings"
+            class="block px-4 py-2 hover:bg-gray-700"
+          >Settings</a>
+          <button
+            (click)="logout()"
+            class="block w-full text-left px-4 py-2 hover:bg-gray-700"
+          >Logout</button>
+        </div>
+        }
+      </div>      <h1 class="text-2xl font-bold">Chats</h1>
       <a routerLink="/new-chat" class="text-xl bg-indigo-600 text-white rounded-full p-2 hover:bg-indigo-700">+</a>
     </div>
     <div class="p-2 scrollable scrollbar-hide">

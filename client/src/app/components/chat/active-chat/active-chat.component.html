@@ -11,7 +11,7 @@
     </div>
   </div>
 
-  <div #MessageContainer class="pt-10 px-6 pb-6 space-y-4 scrollable scrollbar-hide flex-1 max-h-[calc(100vh-165px)]">
+  <div scrollToEnd #MessageContainer class="pt-10 px-6 pb-6 space-y-4 scrollable scrollbar-hide flex-1 max-h-[calc(100vh-165px)]">
     @for (message of webSocketService.messages; track message.id) {
       <message [message]="message" (contextmenu)="contextMenuService.open(message, $event)"></message>
     }
@@ -23,8 +23,19 @@
         <uploading-file [file]="file" (action)="deleteFile(file)"></uploading-file>
       }
     </div>
-
+    @if (editingMessage) {
+      <div class="mb-2 flex items-center bg-red-50 p-2 rounded-md border border-red-200 text-sm text-red-600">
+        <span class="icon">✏️</span>
+        <div class="flex-col">
+          <div class="ml-2">Edit message</div>
+          <div class="ml-2">{{editingMessage.text}}</div>
+        </div>
+        <button (click)="cancelEditing()" class="ml-auto text-red-600 hover:text-red-800">✖️</button>
+      </div>
+    }
     <form (submit)="sendMessage()" [formGroup]="messageForm" class="flex items-center w-full">
+
+
       <div class="file-upload">
         <label for="file" class="custom-file-label">
           <span class="icon">📂</span>

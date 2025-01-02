@@ -6,9 +6,9 @@ import {
   ReactiveFormsModule,
   Validators,
 } from '@angular/forms';
-import { ChatService } from '../../../data/services/chat.service';
-import { UserService } from '../../../data/services/user.service';
-import { User } from '../../../data/interfaces/user.interface';
+import { ChatService } from '../../../services/chat.service';
+import { UserService } from '../../../services/user.service';
+import { User } from '../../../interfaces/user.interface';
 
 @Component({
   selector: 'app-chat-sidebar-item-add-form',
@@ -38,11 +38,8 @@ export class ChatAddFormComponent {
     if (this.chatForm.invalid) {
       return;
     }
-    this.chatService.addChat(
-      this.chatForm.value.chatName,
-      this.chatForm.value.username,
-    );
+    const { chatName, username } = this.chatForm.value;
+    this.chatService.addChat(chatName, username);
     this.chatForm.reset();
-    window.location.reload();
   }
 }

@@ -16,6 +16,7 @@ const sequelize = new Sequelize({
   host: process.env.DB_HOST,
   port: process.env.DB_PORT ? parseInt(process.env.DB_PORT, 10) : undefined,
   models: [User, Message, ChatUser, Chat, File],
+  logging: false,
 });
 
 Message.belongsTo(User, { foreignKey: "from", as: "sender" });

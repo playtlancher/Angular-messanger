@@ -1,7 +1,7 @@
 import { NextFunction, Request, Response } from "express";
 import jwt from "jsonwebtoken";
 
-const allowedEndpoints = ["/login", "/registration", "/refresh-access-token"];
+const allowedEndpoints = ["/auth/login", "/auth/registration", "/auth/refresh-access-token"];
 
 export function checkAccessToken(req: Request, res: Response, next: NextFunction) {
   if (allowedEndpoints.includes(req.path) || req.method === "OPTIONS") {

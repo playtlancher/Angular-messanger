@@ -29,8 +29,8 @@ export default class ChatService {
     return await this.getMessagesForChat(chatId);
   };
 
-  public createChat = async (name: string, username: string, token: DecodedToken): Promise<Chat> => {
-    const chat = await this.chatRepository.createChat(name);
+  public createChat = async (chatName: string, username: string, token: DecodedToken): Promise<Chat> => {
+    const chat = await this.chatRepository.createChat(chatName);
 
     const user = await this.userRepository.findOneBy({ username });
     if (!user) {
@@ -40,6 +40,11 @@ export default class ChatService {
     await Promise.all([this.chatUserRepository.createConnection(token.id, chat.id), this.chatUserRepository.createConnection(user.id, chat.id)]);
     return chat;
   };
+  public deleteChat(chatId: number, token: DecodedToken): void {
+    const hasAccess = this.hasChatAccess(token.id, chatId);
+    if (!hasAccess) throw new AccessForbiddenError("Access to this chat is forbidden");
+    this.chatRepository.deleteChat(chatId);
+  }
 
   private getChatDetails = async (chat: { chat_id: number }): Promise<Chat | null> => {
     const chatDetails = await this.chatRepository.findOneBy({
@@ -52,7 +57,7 @@ export default class ChatService {
   };
 
   private getMessagesForChat = async (chatId: number): Promise<Message[]> => {
-    return await this.messageRepository.findAllBy({ chat: chatId }, ["createdAt", "DESC"]);
+    return await this.messageRepository.findAllBy({ chat: chatId });
   };
 
   private hasChatAccess = async (userId: number, chatId: number): Promise<boolean> => {

@@ -17,7 +17,7 @@ export default class MessageRepository {
     }
   }
 
-  async findAllBy(params: WhereOptions, order?: string[]): Promise<Message[]> {
+  async findAllBy(params: WhereOptions, order: [string, string][] = [["date", "ASC"]]): Promise<Message[]> {
     const messages = await Message.findAll({
       where: params,
       include: [
@@ -27,6 +27,7 @@ export default class MessageRepository {
           attributes: ["username"],
         },
       ],
+      order: order,
     });
     return messages || [];
   }
@@ -34,7 +35,6 @@ export default class MessageRepository {
   async findOneBy(params: WhereOptions): Promise<Message | void> {
     const message = await Message.findOne({
       where: params,
-      order: [["createdAt", "DESC"]], // TODO: fixme
       include: [
         {
           model: User,

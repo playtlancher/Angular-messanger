@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { Message } from '../interfaces/message.interface';
-import { environment } from '../../../environments/environment';
+import { environment } from '../../environments/environment';
 import { AuthService } from './auth.service';
 
 @Injectable({
@@ -48,11 +48,11 @@ export class WebSocketService {
           break;
         }
         case 'Delete': {
-          this.removeMessage(payload.messages);
+          this.removeMessage(payload.messages[0]);
           break;
         }
         case 'Update': {
-          this.updateMessageDate(payload.messages);
+          this.updateMessageDate(payload.messages[0]);
           break;
         }
         case 'Error': {
@@ -83,12 +83,10 @@ export class WebSocketService {
       });
     }
   }
-  private addMessages(newMessages: Message[]): void {
-    newMessages.forEach(this.formatAndAddMessage.bind(this));
-  }
-
-  private formatAndAddMessage(message: Message): void {
-    this.messages.push(message);
+  private addMessages(messages: Message[]): void {
+    messages.forEach((message) => {
+      this.messages.push(message);
+    });
   }
 
   private removeMessage(message: Message): void {

@@ -14,6 +14,7 @@ import ChatService from "./ChatService";
 import DecodeJWT from "../Utils/DecodeJWT";
 import DecodedToken from "../interfaces/DecodedToken";
 import Logger from "../Utils/Logger";
+import MessageService from "./MessageService";
 
 type MessageType = "Post" | "Delete" | "Update";
 
@@ -39,7 +40,7 @@ interface WebSocketEvent {
 
 const clients: Map<string, WebSocket> = new Map();
 const fileRepository = new FileRepository();
-const messageRepository = new MessageRepository();
+const messageService = new MessageService();
 const chatService = new ChatService();
 const userRepository = new UserRepository();
 const chatUserRepository = new ChatUserRepository();
@@ -96,7 +97,6 @@ export default class WebSocketService {
 
   private async loadMessages(chatId: number, decodedToken: DecodedToken) {
     const rawMessages = await chatService.getChatMessages(chatId, decodedToken);
-
     return Promise.all(
       rawMessages.map(async (message: Message) => ({
         id: message.id,
@@ -115,7 +115,7 @@ export default class WebSocketService {
       const user = await this.validateUser(token);
       const hasAccess = await chatUserRepository.checkUserChatConnection(user?.id, message?.chat);
       if (!user || !hasAccess) return;
-
+      if (user.id !== message.from) return;
       const event = await this.handleMessageType(type, message, user.id);
       this.broadcast(event);
     } catch (error) {
@@ -137,7 +137,7 @@ export default class WebSocketService {
   }
 
   private async handlePostMessage(message: ChatMessage, userId: number): Promise<WebSocketEvent> {
-    const newMessage = await messageRepository.createMessage(message.text, userId, message.chat);
+    const newMessage = await messageService.createMessage(message.text, message.chat, userId);
     const files = await this.saveFiles(message.files, newMessage!.id);
 
     return this.webSocketEventFabric("Post", [
@@ -180,13 +180,13 @@ export default class WebSocketService {
       .then((files) => files.forEach((file) => fs.unlinkSync(path.join(this.getUploadsDir(), file.id))))
       .catch(console.error);
 
-    messageRepository.deleteMessage(message.id);
-    return this.webSocketEventFabric("Delete", message);
+    messageService.deleteMessage(message.id);
+    return this.webSocketEventFabric("Delete", [message]);
   }
 
   private async handleUpdateMessage(message: ChatMessage): Promise<WebSocketEvent> {
-    const updatedMessage = await messageRepository.updateMessage(message.id, message.text);
-    return this.webSocketEventFabric("Update", updatedMessage);
+    const updatedMessage = messageService.updateMessage(message.id, message.text);
+    return this.webSocketEventFabric("Update", [updatedMessage]);
   }
 
   private async broadcast(event: WebSocketEvent) {

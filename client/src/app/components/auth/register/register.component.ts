@@ -5,9 +5,12 @@ import {
   ReactiveFormsModule,
   Validators,
 } from '@angular/forms';
-import { AuthService } from '../../../data/services/auth.service';
+import { AuthService } from '../../../services/auth.service';
 import { NgIf } from '@angular/common';
 import { Router, RouterLink } from '@angular/router';
+import { InvalidUsernameError } from '../../../errors/InvalidUsernameError';
+import { PasswordEmptyError } from '../../../errors/PasswordEmptyError';
+import { PasswordMatchError } from '../../../errors/PasswordMatchError';
 
 @Component({
   selector: 'app-register',
@@ -32,7 +35,6 @@ export class RegisterComponent {
 
   onSubmit() {
     this.registrationError = null;
-
     if (!this.registrationForm.valid) {
       console.error('Form is not valid.');
       return;
@@ -43,17 +45,31 @@ export class RegisterComponent {
     const confirmPassword: string =
       this.registrationForm.value.confirmPassword || '';
 
-    if (password !== confirmPassword) {
-      this.registrationError = 'Passwords do not match.';
-      return;
-    }
-
     this.authService.register(username, password, confirmPassword).subscribe({
-      next: (response) => {
+      next: () => {
         this.router.navigate(['/login']);
       },
-      error: (err) => {
-        this.registrationError = err.error;
+      error: (e) => {
+        switch (true) {
+          case e instanceof InvalidUsernameError: {
+            this.registrationError =
+              'Username must not be empty and contain spaces';
+            break;
+          }
+          case e instanceof PasswordEmptyError: {
+            this.registrationError = 'Password must not be empty';
+            break;
+          }
+          case e instanceof PasswordMatchError: {
+            this.registrationError = 'Passwords must match';
+            break;
+          }
+          default: {
+            const error = e as Error;
+            this.registrationError = error.message;
+          }
+        }
+        console.error('Registration error:', e);
       },
     });
   }

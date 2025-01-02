@@ -5,11 +5,16 @@ import { UserExistsError } from "../errors/UserExistError";
 import { IncorrectUsernameOrPasswordError } from "../errors/IncorrectUsernameOrPasswordError";
 import { MissingRefreshTokenError } from "../errors/MissingRefreshTokenError";
 import Logger from "../Utils/Logger";
+import UserService from "../services/UserService";
 
-@Controller("/")
+@Controller("/auth")
 export default class AuthController {
-  constructor(private readonly authService: AuthService) {
+  constructor(
+    private readonly authService: AuthService,
+    private readonly userService: UserService,
+  ) {
     this.authService = new AuthService();
+    this.userService = new UserService();
   }
 
   @Post("/login")
@@ -42,16 +47,9 @@ export default class AuthController {
   @Post("/registration")
   async registration(@Response() res: express.Response, @Request() req: express.Request): Promise<void> {
     try {
-      const { username, password, confirmPassword } = req.body;
-      // if (username.trim() === "" || username.includes(" ")) {
-      //   res.status(400).json({ message: "Invalid username" });
-      //   return;
-      // }
-      // if (password.trim() === "" || password !== confirmPassword) {
-      //   res.status(400).json({ message: "Password mismatch or empty" });
-      //   return;
-      // }
+      const { username, password } = req.body;
       await this.authService.register(username, password);
+      res.status(200).json("User successfully registered");
     } catch (e) {
       switch (true) {
         case e instanceof UserExistsError: {
@@ -94,14 +92,14 @@ export default class AuthController {
   }
 
   @Get("/logout")
-  async logout(@Response() res: express.Response): Promise<void> {
+  async logout(@Request() req: express.Request, @Response() res: express.Response): Promise<void> {
     try {
-      res.clearCookie("accessToken", {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === "production",
+      const cookies = req.cookies;
+      Object.keys(cookies).forEach((cookieName) => {
+        res.clearCookie(cookieName);
       });
 
-      res.status(200).send("User logged out successfully");
+      res.status(200);
     } catch (e) {
       Logger.error("Server error:", e);
       res.status(500).send("Internal server error");
