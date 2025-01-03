@@ -8,6 +8,8 @@ import { ContextMenuService } from '../../services/context-menu.service';
 import { AsyncPipe } from '@angular/common';
 import { AuthService } from '../../services/auth.service';
 import { ChatContextMenuComponent } from '../chat/chat-context-menu/chat-context-menu.component';
+import {ProfileComponent} from '../profile/profile.component';
+import {ProfileService} from '../../services/profile.service';
 
 @Component({
   selector: 'app-main-page',
@@ -18,6 +20,7 @@ import { ChatContextMenuComponent } from '../chat/chat-context-menu/chat-context
     MessageContextMenuComponent,
     AsyncPipe,
     ChatContextMenuComponent,
+    ProfileComponent,
   ],
   templateUrl: './main-page.component.html',
   standalone: true,
@@ -30,10 +33,14 @@ export class MainPageComponent {
     private readonly chatService: ChatService,
     protected readonly contextMenuService: ContextMenuService,
     private readonly authService: AuthService,
+    protected readonly profileService: ProfileService,
   ) {
     this.chatService.getChats().subscribe((chats) => {
       this.chats = chats;
     });
+  }
+  openProfile(){
+    this.profileService.isProfileOpen$.next(true);
   }
   toggleDropdown() {
     this.isDropdownOpen = !this.isDropdownOpen;

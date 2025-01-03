@@ -9,6 +9,8 @@ import { UploadingFileComponent } from '../uploading-file/uploading-file.compone
 import { ChatService } from '../../../services/chat.service';
 import { ContextMenuService } from '../../../services/context-menu.service';
 import { ScrollToEndDirective } from '../../../directives/scroll-to-end.directive';
+import {getUser} from '../../../utilities/GetUser';
+import {User} from '../../../interfaces/user.interface';
 
 @Component({
   selector: 'app-active-chat',
@@ -25,7 +27,7 @@ import { ScrollToEndDirective } from '../../../directives/scroll-to-end.directiv
 })
 export class ActiveChatComponent implements OnInit, OnDestroy {
   chatId: number = -1;
-  userId: number = parseInt(localStorage.getItem('user')!) || -1;
+  user: User | null = getUser();
   chatName: string = localStorage.getItem('chat') || '';
   messageForm!: FormGroup;
   files: File[] = [];
@@ -76,7 +78,7 @@ export class ActiveChatComponent implements OnInit, OnDestroy {
           const newMessage: Message = {
             text: this.messageForm.value.message! || '',
             chat: this.chatId,
-            from: this.userId,
+            from: this.user!.id,
             files: await convertFilesToBase64(this.files),
           };
           this.webSocketService.sendMessage(newMessage);

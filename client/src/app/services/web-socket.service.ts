@@ -65,6 +65,7 @@ export class WebSocketService {
       }
   }
   private handleError(error: string): void {
+    console.log(error)
     switch (error){
       case 'Invalid token':{
         this.authService.refreshAccessToken().subscribe({

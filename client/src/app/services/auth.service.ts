@@ -1,12 +1,13 @@
-import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
-import { catchError, tap, throwError } from 'rxjs';
-import { DecodedToken, TokenResponse } from '../interfaces/auth.interface';
-import { environment } from '../../environments/environment';
-import { Router } from '@angular/router';
-import { PasswordMatchError } from '../errors/PasswordMatchError';
-import { PasswordEmptyError } from '../errors/PasswordEmptyError';
-import { InvalidUsernameError } from '../errors/InvalidUsernameError';
+import {Injectable} from '@angular/core';
+import {HttpClient} from '@angular/common/http';
+import {catchError, tap, throwError} from 'rxjs';
+import {DecodedToken, TokenResponse} from '../interfaces/auth.interface';
+import {environment} from '../../environments/environment';
+import {Router} from '@angular/router';
+import {PasswordMatchError} from '../errors/PasswordMatchError';
+import {PasswordEmptyError} from '../errors/PasswordEmptyError';
+import {InvalidUsernameError} from '../errors/InvalidUsernameError';
+import {User} from '../interfaces/user.interface';
 
 @Injectable({
   providedIn: 'root',
@@ -37,7 +38,7 @@ export class AuthService {
       throw new PasswordMatchError('Passwords do not match');
     }
     return this.http
-      .post(`${this.base_url}/auth/registration`, { username, password })
+      .post(`${this.base_url}/auth/registration`, {username, password})
       .pipe(
         catchError((error) => {
           console.log(error);
@@ -65,8 +66,8 @@ export class AuthService {
     return this.http
       .post<TokenResponse>(
         `${this.base_url}/auth/login`,
-        { username, password },
-        { withCredentials: true },
+        {username, password},
+        {withCredentials: true},
       )
       .pipe(
         tap((res) => this.storeTokens(res.accessToken, res.refreshToken)),
@@ -93,6 +94,8 @@ export class AuthService {
       .pipe(
         tap((res) => {
           this.storeTokens(res.accessToken, res.refreshToken);
+          const user = this.getDecodedToken() as User;
+          localStorage.setItem("user", JSON.stringify(user));
         }),
         catchError((error) => {
           this.router.navigate(['/login']);
@@ -138,10 +141,5 @@ export class AuthService {
 
   isAuth() {
     return !!this.accessToken;
-  }
-
-  getUserId(): number | null {
-    const decoded = this.getDecodedToken();
-    return decoded ? decoded.id : null;
   }
 }

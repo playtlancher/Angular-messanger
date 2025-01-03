@@ -1,5 +1,5 @@
 <div class="d-flex">
-    <div class="flex {{user===message.from?'items-end justify-end':'items-start'}}">
+    <div class="flex {{user!.id===message.from?'items-end justify-end':'items-start'}}">
       <div [ngClass]="this.messageStyleClass()">
         <span>{{ message.text }}</span>
         @if (message.files && message.files.length > 0) {

@@ -5,5 +5,6 @@ export interface TokenResponse {
 export interface DecodedToken {
   id: number;
   username: string;
+  avatar: string;
   exp: number;
 }

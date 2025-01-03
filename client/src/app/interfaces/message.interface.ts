@@ -2,7 +2,7 @@ export interface Message {
   id?: number;
   text: string;
   chat: number;
-  from: number;
+  from?: number;
   date?: Date;
   files?: MessageFile[];
 }

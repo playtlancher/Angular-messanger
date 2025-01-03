@@ -5,6 +5,7 @@ import User from "../models/User";
 export default class MessageRepository {
   async createMessage(text: string, senderId: number, chatId: number): Promise<Message | null> {
     try {
+      console.log(senderId);
       const message = await Message.create({
         text: text,
         chat: chatId,

@@ -119,7 +119,7 @@ export default class WebSocketService {
     const { type, message, token }: { type: MessageType; message: ChatMessage; token: string } = JSON.parse(data);
     try {
       const user = await this.validateUser(token);
-      const hasAccess = await chatUserRepository.checkUserChatConnection(user?.id, message?.chat);
+      const hasAccess = await chatUserRepository.checkUserChatConnection(user.id, message.chat);
       if (!user || !hasAccess) return;
       if (user.id !== message.from) return;
       const event = await this.handleMessageType(type, message, user.id);
@@ -143,7 +143,7 @@ export default class WebSocketService {
   }
 
   private async handlePostMessage(message: ChatMessage, userId: number): Promise<WebSocketEvent> {
-    const newMessage = await messageService.createMessage(message.text, message.chat, userId);
+    const newMessage = await messageService.createMessage(message.text,userId, message.chat);
     const files = await this.saveFiles(message.files, newMessage!.id);
 
     return this.webSocketEventFabric("Post", [

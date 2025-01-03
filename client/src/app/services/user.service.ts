@@ -13,7 +13,7 @@ export class UserService {
 
   constructor() {}
 
-  getUsers(): Observable<{ id: number; username: string }[]> {
+  getUsers(): Observable<User[]> {
     return this.http
       .get<User[]>(`${this.base_url}/users`, { withCredentials: true })
       .pipe(
@@ -21,6 +21,7 @@ export class UserService {
           users.map((user) => ({
             id: user.id,
             username: user.username,
+            avatar: user.avatar,
           })),
         ),
       );

@@ -18,4 +18,8 @@ export default class User extends Model {
   @AllowNull(false)
   @Column(DataType.STRING)
   declare password: string;
+
+  @AllowNull(false)
+  @Column(DataType.STRING)
+  declare avatar: string;
 }

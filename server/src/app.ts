@@ -48,9 +48,7 @@ const corsOptions = {
 };
 app.use(cors(corsOptions));
 app.options("*", cors(corsOptions));
-
 app.use(express.static("public"));
-
 await attachControllers(app, [AuthController, ChatController, UserController]);
 
 const PORT: number = parseInt(process.env.PORT || "8000", 10);

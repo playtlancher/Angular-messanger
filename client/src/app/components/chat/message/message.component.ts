@@ -3,7 +3,8 @@ import { FileService } from '../../../services/file.service';
 import { FormsModule } from '@angular/forms';
 import { Message, MessageFile } from '../../../interfaces/message.interface';
 import { DatePipe, NgClass, NgOptimizedImage } from '@angular/common';
-import { AuthService } from '../../../services/auth.service';
+import {User} from '../../../interfaces/user.interface';
+import {getUser} from '../../../utilities/GetUser';
 
 @Component({
   selector: 'message',
@@ -15,13 +16,12 @@ import { AuthService } from '../../../services/auth.service';
 export class MessageComponent {
   @Input() message!: Message;
 
-  user: number | null = null;
+  user: User | null = null;
 
   constructor(
     private fileService: FileService,
-    public authService: AuthService,
   ) {
-    this.user = this.authService.getUserId();
+    this.user = getUser()
   }
 
   downloadFile(file: MessageFile) {
@@ -29,7 +29,7 @@ export class MessageComponent {
   }
 
   messageStyleClass() {
-    const isSender = this.message.from === this.user;
+    const isSender = this.message.from === this.user!.id;
     return {
       message: true,
       'items-start': true,
