@@ -21,7 +21,12 @@ export default class ChatController {
   @Get("/")
   async getUserChat(@Response() res: express.Response, @Cookies("accessToken") accessToken: string): Promise<void> {
     try {
-      const chats = await this.chatService.getChats(DecodeJWT(accessToken));
+      const decodedToken = DecodeJWT(accessToken);
+      if (!decodedToken){
+        res.status(404).json("Chats for user not found")
+        return
+      }
+      const chats = await this.chatService.getChats(decodedToken);
       res.status(200).json(chats);
     } catch (e) {
       Logger.error("Server error:", e);
@@ -54,7 +59,10 @@ export default class ChatController {
   async createChat(@Response() res: express.Response, @Request() req: express.Request): Promise<void> {
     const token = DecodeJWT(req.cookies.accessToken);
     const { username, name } = req.body;
-
+    if (!token){
+      res.status(401).send("Invalid Token");
+      return
+    }
     try {
       const chat = await this.chatService.createChat(name, username, token);
       res.status(200).json(chat);
@@ -74,10 +82,14 @@ export default class ChatController {
   }
 
   @Delete("/:id")
-  async deleteChat(@Response() res: express.Response, @Request() req: express.Request,@Params("id") id: number): Promise<void> {
+  async deleteChat(@Response() res: express.Response, @Request() req: express.Request, @Params("id") id: number): Promise<void> {
     Logger.info(`Deleting chat ${id}`);
     try {
       const token = DecodeJWT(req.cookies.accessToken);
+      if (!token){
+        res.status(401).send("Invalid Token");
+        return
+      }
       this.chatService.deleteChat(id, token);
       res.status(200).json(`Chat ${id} successfully deleted.`);
     } catch (e) {

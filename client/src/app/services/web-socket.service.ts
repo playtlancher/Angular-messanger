@@ -1,14 +1,17 @@
-import {Injectable} from '@angular/core';
-import {Message} from '../interfaces/message.interface';
-import {environment} from '../../environments/environment';
-import {AuthService} from './auth.service';
-import {Router} from '@angular/router';
+import { Injectable } from '@angular/core';
+import { Message } from '../interfaces/message.interface';
+import { environment } from '../../environments/environment';
+import { AuthService } from './auth.service';
+import { Router } from '@angular/router';
 
 @Injectable({
   providedIn: 'root',
 })
 export class WebSocketService {
-  constructor(private readonly authService: AuthService, private readonly router: Router) {}
+  constructor(
+    private readonly authService: AuthService,
+    private readonly router: Router,
+  ) {}
   private webSocket?: WebSocket;
   public messages: Message[] = [];
   private base_url = environment['BASE_WS_URL'];
@@ -41,33 +44,33 @@ export class WebSocketService {
   }
 
   private handleMessage(event: MessageEvent): void {
-      const { type, error, payload } = JSON.parse(event.data);
-      switch (type) {
-        case 'Post': {
-          this.addMessages(payload.messages);
-          break;
-        }
-        case 'Delete': {
-          this.removeMessage(payload.messages[0]);
-          break;
-        }
-        case 'Update': {
-          this.updateMessageDate(payload.messages[0]);
-          break;
-        }
-        case 'Error': {
-          this.handleError(error);
-          break;
-        }
-        default: {
-          console.warn(`Unhandled WebSocket event type: ${type}`);
-        }
+    const { type, error, payload } = JSON.parse(event.data);
+    switch (type) {
+      case 'Post': {
+        this.addMessages(payload.messages);
+        break;
       }
+      case 'Delete': {
+        this.removeMessage(payload.messages[0]);
+        break;
+      }
+      case 'Update': {
+        this.updateMessageDate(payload.messages[0]);
+        break;
+      }
+      case 'Error': {
+        this.handleError(error);
+        break;
+      }
+      default: {
+        console.warn(`Unhandled WebSocket event type: ${type}`);
+      }
+    }
   }
   private handleError(error: string): void {
-    console.log(error)
-    switch (error){
-      case 'Invalid token':{
+    console.log(error);
+    switch (error) {
+      case 'Invalid token': {
         this.authService.refreshAccessToken().subscribe({
           next: () => {
             this.openWebSocket(this.chatId);
@@ -78,17 +81,16 @@ export class WebSocketService {
         });
         break;
       }
-      case 'Forbidden access to this chat':{
-        this.router.navigate(["/"])
+      case 'Forbidden access to this chat': {
+        this.router.navigate(['/']);
         break;
       }
-      default:{
+      default: {
         console.error('Access to the chat is forbidden. Closing WebSocket.');
         this.closeWebSocket();
       }
     }
   }
-
 
   private addMessages(messages: Message[]): void {
     messages.forEach((message) => {

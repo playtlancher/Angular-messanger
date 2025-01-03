@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Request, Response } from "@decorators/express";
+import {Controller, Get, Params, Post, Request, Response} from "@decorators/express";
 import UserService from "../services/UserService";
 import express from "express";
 import { fileURLToPath } from "node:url";
@@ -6,7 +6,6 @@ import path, { dirname } from "node:path";
 import fs from "fs";
 import multer from "multer";
 import * as uuid from "uuid";
-
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(dirname(__filename));
@@ -35,29 +34,27 @@ export default class UserController {
     res.status(200).send(users);
   }
 
-  @Get("/avatar")
-  async getAvatar(@Response() res: express.Response, @Request() req: express.Request): Promise<unknown> {
-    const user = await this.userService.getCurrentUser(req.cookies.accessToken);
+  @Get("/avatar/:id")
+  async getAvatar(@Response() res: express.Response, @Request() req: express.Request, @Params("id") id: number): Promise<unknown> {
+    const user = await this.userService.getUserById(id);
     if (!user) return res.status(404).send("User not found");
     let filePath = path.join(avatarsDir, user!.avatar);
     if (!fs.existsSync(filePath)) {
-      filePath = path.join(avatarsDir, "avatar.png")
+      filePath = path.join(avatarsDir, "avatar.png");
     }
-    return res.status(200).sendFile(filePath);
+    console.log("Avatar check")
+    return res.sendFile(filePath);
   }
 
   @Post("/avatar")
-  async postAvatar(
-      @Request() req: express.Request,
-      @Response() res: express.Response
-  ): Promise<void> {
+  async postAvatar(@Request() req: express.Request, @Response() res: express.Response): Promise<void> {
     upload.single("file")(req, res, async (err) => {
       if (err) {
         console.error(err);
         return res.status(500).send("Error uploading file.");
       }
       const user = await this.userService.getCurrentUser(req.cookies.accessToken);
-      if (!user) return  res.status(404).send("User not found");
+      if (!user) return res.status(404).send("User not found");
       await this.userService.updateUserAvatar(user.id, req.file!.filename);
 
       res.status(200).json("Avatar uploaded successfully");

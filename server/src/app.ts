@@ -42,7 +42,7 @@ app.use(
 
 const corsOptions = {
   origin: ["http://localhost:4200"],
-  methods: ["GET", "POST", "OPTIONS","DELETE"],
+  methods: ["GET", "POST", "OPTIONS", "DELETE"],
   allowedHeaders: ["Content-Type", "Authorization"],
   credentials: true,
 };

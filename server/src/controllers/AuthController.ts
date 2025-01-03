@@ -8,9 +8,7 @@ import Logger from "../Utils/Logger";
 
 @Controller("/auth")
 export default class AuthController {
-  constructor(
-    private readonly authService: AuthService,
-  ) {
+  constructor(private readonly authService: AuthService) {
     this.authService = new AuthService();
   }
 

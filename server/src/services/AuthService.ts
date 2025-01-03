@@ -33,7 +33,7 @@ export default class AuthService {
     const { accessToken, refreshToken } = this.createTokens({
       id: user.id,
       username: user.username,
-      avatar: user.avatar
+      avatar: user.avatar,
     });
     return {
       accessToken,

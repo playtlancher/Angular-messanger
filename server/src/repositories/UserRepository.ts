@@ -26,8 +26,8 @@ export default class UserRepository {
     const user = await User.findOne({ where: params });
     if (user) return user.toJSON();
   };
-  async updateUser(userId: number, changes:object): Promise<void> {
-    const user = await User.findOne({ where: {id:userId} });
+  async updateUser(userId: number, changes: object): Promise<void> {
+    const user = await User.findOne({ where: { id: userId } });
     if (!user) return;
     user.update(changes);
   }

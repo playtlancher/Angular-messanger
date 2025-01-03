@@ -1,12 +1,15 @@
-import {HttpInterceptorFn} from '@angular/common/http';
-import {catchError, switchMap, throwError} from 'rxjs';
-import {inject} from '@angular/core';
-import {AuthService} from '../services/auth.service';
-import {User} from '../interfaces/user.interface';
+import { HttpInterceptorFn } from '@angular/common/http';
+import { catchError, switchMap, throwError } from 'rxjs';
+import { inject } from '@angular/core';
+import { AuthService } from '../services/auth.service';
+import { User } from '../interfaces/user.interface';
 
 export const authTokenInterceptor: HttpInterceptorFn = (req, next) => {
   const authService = inject(AuthService);
-  localStorage.setItem('user', JSON.stringify(authService.getDecodedToken() as User));
+  localStorage.setItem(
+    'user',
+    JSON.stringify(authService.getDecodedToken() as User),
+  );
   return next(req).pipe(
     catchError((error) => {
       if (error.status === 401 || error.status === 0) {

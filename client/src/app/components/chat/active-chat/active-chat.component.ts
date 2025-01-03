@@ -9,8 +9,8 @@ import { UploadingFileComponent } from '../uploading-file/uploading-file.compone
 import { ChatService } from '../../../services/chat.service';
 import { ContextMenuService } from '../../../services/context-menu.service';
 import { ScrollToEndDirective } from '../../../directives/scroll-to-end.directive';
-import {getUser} from '../../../utilities/GetUser';
-import {User} from '../../../interfaces/user.interface';
+import { getUser } from '../../../utilities/GetUser';
+import { User } from '../../../interfaces/user.interface';
 
 @Component({
   selector: 'app-active-chat',

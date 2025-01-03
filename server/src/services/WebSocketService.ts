@@ -56,15 +56,16 @@ export default class WebSocketService {
       const chatId = parseInt(urlParams.get("chatId") || "");
       const jwtToken = urlParams.get("jwtToken");
       if (!jwtToken) return;
-      const id: string = String(DecodeJWT(jwtToken).id);
-      clients.set(id, ws);
-      if (isNaN(chatId) || !jwtToken) {
-        ws.send(JSON.stringify({type: "Error", error: "Invalid chat ID or missing JWT token" }));
+      const decodedToken = DecodeJWT(jwtToken);
+      if (isNaN(chatId) || !decodedToken) {
+        ws.send(JSON.stringify({ type: "Error", error: "Invalid chat ID or missing JWT token" }));
         ws.close();
         return;
       }
-      const hasAccess = await CheckUserAccess(Number(id),chatId)
-      if (!hasAccess){
+      const id:string = String(decodedToken.id)
+      clients.set(id, ws);
+      const hasAccess = await CheckUserAccess(Number(id), chatId);
+      if (!hasAccess) {
         ws.send(JSON.stringify({ type: "Error", error: "Forbidden access to this chat" }));
         ws.close();
         return;
@@ -143,7 +144,7 @@ export default class WebSocketService {
   }
 
   private async handlePostMessage(message: ChatMessage, userId: number): Promise<WebSocketEvent> {
-    const newMessage = await messageService.createMessage(message.text,userId, message.chat);
+    const newMessage = await messageService.createMessage(message.text, userId, message.chat);
     const files = await this.saveFiles(message.files, newMessage!.id);
 
     return this.webSocketEventFabric("Post", [
@@ -231,6 +232,7 @@ export default class WebSocketService {
     clients.delete(clientId);
     Logger.info(`Client disconnected: ${clientId}`);
   }
+
   private webSocketEventFabric(type: MessageType, messages: unknown): WebSocketEvent {
     return {
       type: type,

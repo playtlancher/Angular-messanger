@@ -8,8 +8,8 @@ import { ContextMenuService } from '../../services/context-menu.service';
 import { AsyncPipe } from '@angular/common';
 import { AuthService } from '../../services/auth.service';
 import { ChatContextMenuComponent } from '../chat/chat-context-menu/chat-context-menu.component';
-import {ProfileComponent} from '../profile/profile.component';
-import {ProfileService} from '../../services/profile.service';
+import { ProfileComponent } from '../profile/profile.component';
+import { ProfileService } from '../../services/profile.service';
 
 @Component({
   selector: 'app-main-page',
@@ -39,7 +39,7 @@ export class MainPageComponent {
       this.chats = chats;
     });
   }
-  openProfile(){
+  openProfile() {
     this.profileService.isProfileOpen$.next(true);
   }
   toggleDropdown() {

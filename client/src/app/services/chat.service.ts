@@ -52,18 +52,21 @@ export class ChatService {
       });
   }
   deleteChat(chat: Chat): void {
-    this.http.delete(`${this.base_url}/chats/${chat.id}`, {
-      withCredentials: true,
-    }).pipe(
-      tap((res) => {
-        console.log('Chat deleted successfully:', res);
-        const index = this.chats$.findIndex((entry) => entry.id === chat.id);
-        if (index !== -1) this.chats$.splice(index, 1);
-      }),
-      catchError((err)=>{
-        console.error(err)
-        throw (err)
+    this.http
+      .delete(`${this.base_url}/chats/${chat.id}`, {
+        withCredentials: true,
       })
-    ).subscribe();
+      .pipe(
+        tap((res) => {
+          console.log('Chat deleted successfully:', res);
+          const index = this.chats$.findIndex((entry) => entry.id === chat.id);
+          if (index !== -1) this.chats$.splice(index, 1);
+        }),
+        catchError((err) => {
+          console.error(err);
+          throw err;
+        }),
+      )
+      .subscribe();
   }
 }

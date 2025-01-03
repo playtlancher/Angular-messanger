@@ -1,28 +1,44 @@
-import { Component, Input } from '@angular/core';
+import {Component, Input, OnInit} from '@angular/core';
 import { FileService } from '../../../services/file.service';
 import { FormsModule } from '@angular/forms';
 import { Message, MessageFile } from '../../../interfaces/message.interface';
-import { DatePipe, NgClass, NgOptimizedImage } from '@angular/common';
-import {User} from '../../../interfaces/user.interface';
-import {getUser} from '../../../utilities/GetUser';
+import {AsyncPipe, DatePipe, NgClass, NgOptimizedImage} from '@angular/common';
+import { User } from '../../../interfaces/user.interface';
+import { getUser } from '../../../utilities/GetUser';
+import {DataService} from '../../../services/data.service';
+import {environment} from '../../../../environments/environment';
 
 @Component({
   selector: 'message',
   templateUrl: './message.component.html',
   styleUrls: ['./message.component.scss'],
   standalone: true,
-  imports: [FormsModule, DatePipe, NgClass, NgOptimizedImage],
+  imports: [FormsModule, DatePipe, NgClass, NgOptimizedImage, AsyncPipe],
 })
-export class MessageComponent {
+export class MessageComponent implements OnInit {
   @Input() message!: Message;
 
   user: User | null = null;
-
-  constructor(
-    private fileService: FileService,
-  ) {
-    this.user = getUser()
+  avatarUrl: string = ``;
+  avatarUrlObject: string | null = null;
+  constructor(private fileService: FileService,private readonly dataService: DataService) {
+    this.user = getUser();
+    this.avatarUrl = `${environment["BASE_URL"]}/users/avatar/${this.user!.id}`;
   }
+  ngOnInit() {
+    if (this.message.from !== this.user?.id && this.message) {
+      this.dataService.getData(this.avatarUrl, { responseType: 'blob', withCredentials: true }).subscribe((response:any) => {
+        console.log(response);
+        this.avatarUrlObject = URL.createObjectURL(response);
+        console.log(this.avatarUrlObject);
+      }, (error:any) => {
+        console.error("Error fetching image:", error);
+      });
+    } else {
+      this.avatarUrlObject = null;
+    }
+  }
+
 
   downloadFile(file: MessageFile) {
     this.fileService.installFile(file);
