@@ -1,0 +1,41 @@
+.fade {
+  position: fixed;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  right: 0;
+}
+ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  right: 0;
+  animation: fadeInScale;
+  transition: color 0.3s ease-in-out;
+  transform-origin: top left;
+}
+@keyframes fadeInScale {
+  0% {
+    opacity: 0;
+    transform: scale(0.5);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+li{
+  transition: ease-in-out 0.3s;
+}
+#delete{
+  color: #f45a5a;
+}
+#delete:hover{
+  color: #f61515;
+}
+#edit{
+  color: #346eba;
+}
+#edit:hover{
+  color: #0074fd;
+}
