@@ -1,10 +1,10 @@
 import {Component, Input, OnInit} from '@angular/core';
-import { FileService } from '../../../services/file.service';
-import { FormsModule } from '@angular/forms';
-import { Message, MessageFile } from '../../../interfaces/message.interface';
-import {AsyncPipe, DatePipe, NgClass, NgOptimizedImage} from '@angular/common';
-import { User } from '../../../interfaces/user.interface';
-import { getUser } from '../../../utilities/GetUser';
+import {FileService} from '../../../services/file.service';
+import {FormsModule} from '@angular/forms';
+import {Message, MessageFile} from '../../../interfaces/message.interface';
+import {DatePipe, NgClass, NgOptimizedImage} from '@angular/common';
+import {User} from '../../../interfaces/user.interface';
+import {getUser} from '../../../utilities/GetUser';
 import {DataService} from '../../../services/data.service';
 import {environment} from '../../../../environments/environment';
 
@@ -13,7 +13,7 @@ import {environment} from '../../../../environments/environment';
   templateUrl: './message.component.html',
   styleUrls: ['./message.component.scss'],
   standalone: true,
-  imports: [FormsModule, DatePipe, NgClass, NgOptimizedImage, AsyncPipe],
+  imports: [FormsModule, DatePipe, NgClass, NgOptimizedImage],
 })
 export class MessageComponent implements OnInit {
   @Input() message!: Message;
@@ -23,14 +23,16 @@ export class MessageComponent implements OnInit {
   avatarUrlObject: string | null = null;
   constructor(private fileService: FileService,private readonly dataService: DataService) {
     this.user = getUser();
-    this.avatarUrl = `${environment["BASE_URL"]}/users/avatar/${this.user!.id}`;
   }
   ngOnInit() {
+    this.avatarUrl = `${environment["BASE_URL"]}/users/avatar/${this.message.from}`;
     if (this.message.from !== this.user?.id && this.message) {
       this.dataService.getData(this.avatarUrl, { responseType: 'blob', withCredentials: true }).subscribe((response:any) => {
-        console.log(response);
-        this.avatarUrlObject = URL.createObjectURL(response);
-        console.log(this.avatarUrlObject);
+        if (response instanceof Blob) {
+          this.avatarUrlObject = URL.createObjectURL(response);
+        }else{
+          this.avatarUrlObject = response;
+        }
       }, (error:any) => {
         console.error("Error fetching image:", error);
       });

@@ -33,10 +33,7 @@ export class ChatService {
 
   addChat(chatName: string, username: string): void {
     this.http
-      .post<{
-        name: string;
-        id: number;
-      }>(
+      .post<Chat>(
         `${this.base_url}/chats`,
         { username, name: chatName },
         { withCredentials: true },
@@ -44,7 +41,7 @@ export class ChatService {
       .subscribe({
         next: (response) => {
           console.log('Chat added successfully:', response);
-          this.chats$.push({ id: response.id, name: response.name });
+          this.chats$.push({ id: response.id, name: response.name, creator: response.creator, image: response.image });
         },
         error: (err) => {
           console.error('Error adding chat:', err);

@@ -5,7 +5,6 @@ import UserRepository from "../repositories/UserRepository";
 import DecodedToken from "../interfaces/DecodedToken";
 import Message from "../models/Message";
 import Chat from "../models/Chat";
-import { UserNotFoundError } from "../errors/UserNotFoundError";
 import { AccessForbiddenError } from "../errors/AccessForbiddenError";
 
 export default class ChatService {
@@ -29,21 +28,18 @@ export default class ChatService {
     return await this.getMessagesForChat(chatId);
   };
 
-  public createChat = async (chatName: string, username: string, token: DecodedToken): Promise<Chat> => {
+  public createChat = async (chatName: string, token: DecodedToken): Promise<Chat> => {
     const chat = await this.chatRepository.createChat(chatName);
-
-    const user = await this.userRepository.findOneBy({ username });
-    if (!user) {
-      throw new UserNotFoundError("User not found");
-    }
-
-    await Promise.all([this.chatUserRepository.createConnection(token.id, chat.id), this.chatUserRepository.createConnection(user.id, chat.id)]);
+    await Promise.all([this.chatUserRepository.createConnection(token.id, chat.id), this.chatUserRepository.createConnection(token.id, chat.id)]);
     return chat;
   };
   public deleteChat(chatId: number, token: DecodedToken): void {
     const hasAccess = this.hasChatAccess(token.id, chatId);
     if (!hasAccess) throw new AccessForbiddenError("Access to this chat is forbidden");
     this.chatRepository.deleteChat(chatId);
+  }
+  public async getChatById(chatId: number): Promise<Chat | null> {
+    return await this.chatRepository.findOneBy({ id: chatId });
   }
 
   private getChatDetails = async (chat: { chat_id: number }): Promise<Chat | null> => {

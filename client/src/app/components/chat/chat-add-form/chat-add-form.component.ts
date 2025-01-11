@@ -9,13 +9,15 @@ import {
 import { ChatService } from '../../../services/chat.service';
 import { UserService } from '../../../services/user.service';
 import { User } from '../../../interfaces/user.interface';
+import {RouterLink} from '@angular/router';
 
 @Component({
   selector: 'app-chat-sidebar-item-add-form',
-  imports: [FormsModule, ReactiveFormsModule],
+  imports: [FormsModule, ReactiveFormsModule, RouterLink],
   templateUrl: './chat-add-form.component.html',
   standalone: true,
   styleUrl: './chat-add-form.component.scss',
+  host: {'class': 'absolute xl:relative xl:w-3/4 flex h-full flex-col w-full z-20 bg-gray-900 bg-image overflow-hidden'},
 })
 export class ChatAddFormComponent {
   users: User[] = [];

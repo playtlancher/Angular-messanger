@@ -72,3 +72,11 @@
 .add-chat-btn:hover {
   background-color: var(--bg-color-hover);
 }
+.chat-image{
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+.chat-image span{
+  font-size: 28px;
+}

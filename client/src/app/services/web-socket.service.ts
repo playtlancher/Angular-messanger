@@ -70,9 +70,10 @@ export class WebSocketService {
   private handleError(error: string): void {
     console.log(error);
     switch (error) {
-      case 'Invalid token': {
+      case 'Invalid chat ID or missing JWT token': {
         this.authService.refreshAccessToken().subscribe({
           next: () => {
+            this.jwtToken = localStorage.getItem('token');
             this.openWebSocket(this.chatId);
           },
           error: (refreshError) => {
@@ -94,7 +95,7 @@ export class WebSocketService {
 
   private addMessages(messages: Message[]): void {
     messages.forEach((message) => {
-      this.messages.push(message);
+      this.messages.unshift(message);
     });
   }
 

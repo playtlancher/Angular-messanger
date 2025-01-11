@@ -1,9 +1,9 @@
-<div class="flex h-screen">
-  <div id="side-panel" class="w-1/4 bg-gray-800 flex flex-col relative z-10">
+<div class="flex h-screen relative">
+  <div id="side-panel" class="w-full xl:w-1/4 bg-gray-800 flex flex-col relative z-10">
     <div class="z-50">
       @if(profileService.isProfileOpen$ | async){
         <app-profile
-          class="absolute inset-0 bg-gray-900 shadow-lg"
+          class="absolute inset-0 shadow-lg"
         ></app-profile>
       }
     </div>
@@ -41,18 +41,15 @@
     </div>
   </div>
 
-  <div class="w-3/4 flex flex-col">
-    <div style="max-height: 100vh" id="activeChat" class="flex-1 bg-gray-800 space-y-4">
+<!--    <div class="flex-1 space-y-4">-->
       <router-outlet></router-outlet>
-    </div>
+<!--    </div>-->
   </div>
-
-  @if ((contextMenuService.isVisible$ | async) && contextMenuService.clickedMessage) {
-    <message-context-menu [positionX]="contextMenuService.positionX" [positionY]="contextMenuService.positionY"
-                          [message]="contextMenuService.clickedMessage!"></message-context-menu>
-  }
-  @if ((contextMenuService.isVisible$ | async) && contextMenuService.clickedChat) {
-    <chat-context-menu [positionX]="contextMenuService.positionX" [positionY]="contextMenuService.positionY"
-                       [chat]="contextMenuService.clickedChat!"></chat-context-menu>
-  }
-</div>
+@if ((contextMenuService.isVisible$ | async) && contextMenuService.clickedMessage) {
+  <message-context-menu [positionX]="contextMenuService.positionX" [positionY]="contextMenuService.positionY"
+                        [message]="contextMenuService.clickedMessage!"></message-context-menu>
+}
+@if ((contextMenuService.isVisible$ | async) && contextMenuService.clickedChat) {
+  <chat-context-menu [positionX]="contextMenuService.positionX" [positionY]="contextMenuService.positionY"
+                     [chat]="contextMenuService.clickedChat!"></chat-context-menu>
+}

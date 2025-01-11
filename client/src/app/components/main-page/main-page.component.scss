@@ -1,12 +1,12 @@
-#activeChat {
-  background-image: url("/assets/images/chat-bg.png");
-  background-size: cover;
-  background-position: center;
-  background-repeat: no-repeat;
-  mix-blend-mode: unset;
-}
 #side-panel{
-  border-right: 1px solid #4e45e3;
+  border-right: 1px solid rgb(48, 48, 48);
   overflow-y: auto;
   max-height: 100vh;
+}
+.bg-image {
+  background-image: url("/assets/images/chat-bg.png");
+  background-size: 35%;
+  background-position: center;
+  background-repeat: repeat;
+  mix-blend-mode: unset;
 }

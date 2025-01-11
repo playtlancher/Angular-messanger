@@ -13,4 +13,9 @@ export default class Chat extends Model {
   @AllowNull(false)
   @Column(DataType.TEXT)
   declare name: string;
+  @AllowNull(false)
+  @Column(DataType.INTEGER)
+  declare creator: number;
+  @Column(DataType.TEXT)
+  declare image: string;
 }

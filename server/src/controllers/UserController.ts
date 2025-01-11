@@ -1,4 +1,4 @@
-import {Controller, Get, Params, Post, Request, Response} from "@decorators/express";
+import { Controller, Get, Params, Post, Request, Response } from "@decorators/express";
 import UserService from "../services/UserService";
 import express from "express";
 import { fileURLToPath } from "node:url";
@@ -6,6 +6,7 @@ import path, { dirname } from "node:path";
 import fs from "fs";
 import multer from "multer";
 import * as uuid from "uuid";
+import Logger from "../Utils/Logger";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(dirname(__filename));
@@ -35,14 +36,14 @@ export default class UserController {
   }
 
   @Get("/avatar/:id")
-  async getAvatar(@Response() res: express.Response, @Request() req: express.Request, @Params("id") id: number): Promise<unknown> {
+  async getAvatar(@Response() res: express.Response, @Params("id") id: number): Promise<unknown> {
     const user = await this.userService.getUserById(id);
     if (!user) return res.status(404).send("User not found");
     let filePath = path.join(avatarsDir, user!.avatar);
     if (!fs.existsSync(filePath)) {
       filePath = path.join(avatarsDir, "avatar.png");
     }
-    console.log("Avatar check")
+    Logger.info("Avatar sent");
     return res.sendFile(filePath);
   }
 

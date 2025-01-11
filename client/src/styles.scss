@@ -5,20 +5,25 @@
 .scrollbar-hide::-webkit-scrollbar {
   display: none;
 }
+
 .scrollbar-hide {
   -ms-overflow-style: none;
   scrollbar-width: none;
 }
-.scrollable{
+
+.scrollable {
   overflow-y: auto;
 }
-.p-absolute{
-  position: absolute!important;
+
+.p-absolute {
+  position: absolute !important;
 }
+
 .p-sticky {
   position: sticky !important;
 }
-.p-relative{
+
+.p-relative {
   position: relative !important;
 }
 
@@ -26,10 +31,23 @@
   top: 0 !important;
 }
 
-.width-100{
+.width-100 {
   width: 100% !important;
 }
 
-.height-100vh{
+.height-100vh {
   height: 100vh !important;
+}
+
+* {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.bg-image {
+  background-image: url("/assets/images/chat-bg.png");
+  background-size: 35%;
+  background-position: center;
+  background-repeat: repeat;
+  mix-blend-mode: unset;
 }

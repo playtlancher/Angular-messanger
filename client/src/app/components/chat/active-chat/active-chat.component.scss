@@ -22,3 +22,20 @@ input[type="file"] {
   word-wrap: break-word;
   max-width: 300px;
 }
+.message-container{
+  display: flex;
+  flex-direction: column-reverse;
+}
+//#active-chat-bar{
+//  background-color: rgb(37, 37, 37);
+//}
+//
+.chat-image{
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+.chat-image span{
+  font-size: 28px;
+}
+

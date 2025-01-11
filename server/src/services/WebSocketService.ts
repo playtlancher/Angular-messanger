@@ -58,11 +58,12 @@ export default class WebSocketService {
       if (!jwtToken) return;
       const decodedToken = DecodeJWT(jwtToken);
       if (isNaN(chatId) || !decodedToken) {
+        console.log(chatId);
         ws.send(JSON.stringify({ type: "Error", error: "Invalid chat ID or missing JWT token" }));
         ws.close();
         return;
       }
-      const id:string = String(decodedToken.id)
+      const id: string = String(decodedToken.id);
       clients.set(id, ws);
       const hasAccess = await CheckUserAccess(Number(id), chatId);
       if (!hasAccess) {

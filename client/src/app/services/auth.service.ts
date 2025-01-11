@@ -140,6 +140,6 @@ export class AuthService {
   }
 
   isAuth() {
-    return !!this.accessToken;
+    return !!this.accessToken || !!this.refreshToken;
   }
 }

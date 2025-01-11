@@ -1,5 +1,5 @@
-<div (mousedown)="contextMenuService.close()" class="fade"></div>
-<ul class="p-absolute bg-white shadow-lg rounded-md border border-gray-200 z-1 py-2 w-48"
+<div (mousedown)="contextMenuService.close()" class="fade z-20"></div>
+<ul class="p-absolute bg-white shadow-lg rounded-md border border-gray-200 z-30 py-2 w-48"
     [ngStyle]="{'top.px': positionY>420?positionY-75:positionY, 'left.px': positionX+240>screenWidth?positionX-195:positionX}">
   <li
     id="edit"
